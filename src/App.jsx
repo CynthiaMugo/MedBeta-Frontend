@@ -1,42 +1,26 @@
-// src/App.jsx
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
-// ===== Components =====
+// Pages
 import Landing from "./pages/Landing";
-import PortalSelect from "./pages/PortalSelect"; // 
-import Auth from "./pages/PatientAuth";
+import PatientAuth from "./pages/PatientAuth";
 import PatientDashboard from "./pages/PatientDashboard";
-
-// ===== Pages / Dashboards =====
+import DoctorAuth from "./pages/DoctorAuth";
 import DoctorDashboard from "./pages/DoctorsDashboard";
-import LabDashboard from "./pages/LabDashboard";
-import PharmacistDashboard from "./pages/PharmacistDashboard";
-import AdminDashboard from "./pages/AdminDashboard";
-import OTPVerification from "./pages/OTPVerification";
 
-// ===== Routes =====
-import PrivateRoute from "./routes/PrivateRoute";
+// Components
+import PrivateRoute from "./components/PrivateRoute";
 
-function App() {
+export default function App() {
   return (
     <Router>
       <Routes>
-        {/* ===== Public Pages ===== */}
+        {/* Public Routes */}
         <Route path="/" element={<Landing />} />
-        <Route path="/portal-select" element={<PortalSelect />} />
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/otp" element={<OTPVerification />} />
+        <Route path="/auth" element={<PatientAuth />} />
+        <Route path="/doctor-auth" element={<DoctorAuth />} />
 
-        {/* ===== Dashboards (Private Routes) ===== */}
-        <Route
-          path="/doctor-dashboard"
-          element={
-            <PrivateRoute role="doctor">
-              <DoctorDashboard />
-            </PrivateRoute>
-          }
-        />
+        {/* Patient Dashboard (Protected) */}
         <Route
           path="/patient-dashboard"
           element={
@@ -45,33 +29,20 @@ function App() {
             </PrivateRoute>
           }
         />
+
+        {/* Doctor Dashboard (Protected) */}
         <Route
-          path="/lab-dashboard"
+          path="/doctors-dashboard"
           element={
-            <PrivateRoute role="lab">
-              <LabDashboard />
+            <PrivateRoute role="doctor">
+              <DoctorDashboard />
             </PrivateRoute>
           }
         />
-        <Route
-          path="/pharmacist-dashboard"
-          element={
-            <PrivateRoute role="pharmacist">
-              <PharmacistDashboard />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/admin-dashboard"
-          element={
-            <PrivateRoute role="admin">
-              <AdminDashboard />
-            </PrivateRoute>
-          }
-        />
+
+        {/* Catch-all Redirect */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );
 }
-
-export default App;
