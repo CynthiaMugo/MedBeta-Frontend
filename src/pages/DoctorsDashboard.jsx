@@ -3,7 +3,7 @@ import React, { useState, useMemo } from "react";
 import { Calendar, User, FlaskRound, Pill } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function DoctorPortal() {
+function DoctorPortal() {
   const [doctorName] = useState("Dr. Ian Mabruk");
   const [specialty] = useState("Cardiologist");
   const [profilePic, setProfilePic] = useState("https://via.placeholder.com/100");
@@ -267,3 +267,5 @@ export default function DoctorPortal() {
     </div>
   );
 }
+
+export default DoctorPortal;

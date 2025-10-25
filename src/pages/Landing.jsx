@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Lock, Zap, FileText } from "lucide-react";
 
-export default function Landing() {
+function Landing() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex flex-col">
       {/* Top Nav */}
@@ -131,3 +131,5 @@ export default function Landing() {
     </div>
   );
 }
+
+export default Landing;

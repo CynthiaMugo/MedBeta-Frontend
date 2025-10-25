@@ -8,7 +8,7 @@ const countryCodes = [
   { code: "+91", country: "India" },
 ];
 
-export default function PatientAuthForm() {
+function PatientAuthForm() {
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -37,7 +37,7 @@ export default function PatientAuthForm() {
     setLoading(true);
 
     try {
-      // ✅ Build a user object compatible with PrivateRoute
+      // Build a user object compatible with PrivateRoute
       const user = {
         name: form.name,
         email: form.email,
@@ -49,7 +49,7 @@ export default function PatientAuthForm() {
       // Save user to localStorage
       localStorage.setItem("user", JSON.stringify(user));
 
-      // ✅ Redirect to dashboard
+      //  Redirect to dashboard
       setTimeout(() => {
         navigate("/patient-dashboard");
       }, 500);
@@ -181,3 +181,5 @@ export default function PatientAuthForm() {
     </div>
   );
 }
+
+export default PatientAuthForm;

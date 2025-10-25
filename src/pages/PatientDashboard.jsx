@@ -14,7 +14,7 @@ import {
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-export default function PatientDashboard() {
+function PatientDashboard() {
   const storedName = localStorage.getItem("patientName") || "Patient";
   const [patientName, setPatientName] = useState(storedName);
   const [profilePic, setProfilePic] = useState(localStorage.getItem("profilePic") || "");
@@ -213,3 +213,5 @@ function Card({ title, icon, items }) {
     </section>
   );
 }
+
+export default PatientDashboard;

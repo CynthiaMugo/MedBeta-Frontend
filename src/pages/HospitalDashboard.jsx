@@ -17,7 +17,7 @@ const dummyAppointments = [
   { id: 3, patient: "Bob Teen", doctor: "Dr. Williams", time: "1:00 PM", status: "Pending" },
 ];
 
-export default function HospitalDashboard() {
+function HospitalDashboard() {
   const [loggedIn, setLoggedIn] = useState(JSON.parse(localStorage.getItem("hospitalLoggedIn")) || false);
   const [role, setRole] = useState("");
   const [nameInput, setNameInput] = useState("");
@@ -339,3 +339,5 @@ export default function HospitalDashboard() {
     </div>
   );
 }
+
+export default HospitalDashboard;

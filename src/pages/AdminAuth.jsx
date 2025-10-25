@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, Lock } from "lucide-react";
 
-export default function AdminAuth() {
+function AdminAuth() {
   const navigate = useNavigate();
 
   // ----- State -----
@@ -112,3 +112,4 @@ export default function AdminAuth() {
   );
 }
 
+export default AdminAuth;

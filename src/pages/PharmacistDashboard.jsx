@@ -18,7 +18,7 @@ const initialPrescriptions = [
   { id: 3, patient: "Patient C", medication: "Amoxicillin", doctor: "Dr. John Doe", pharmacist: "Bob", status: "Done" },
 ];
 
-export default function PharmacistDashboard() {
+function PharmacistDashboard() {
   const [loggedIn, setLoggedIn] = useState(JSON.parse(localStorage.getItem("pharmaLoggedIn")) || false);
   const [nameInput, setNameInput] = useState("");
   const [profilePic, setProfilePic] = useState(null);
@@ -193,3 +193,5 @@ export default function PharmacistDashboard() {
     </div>
   );
 }
+
+export default PharmacistDashboard;

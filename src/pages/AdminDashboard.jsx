@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { LogOut, Bell, Settings, Send, X } from "lucide-react";
 
-export default function AdminDashboard() {
+function AdminDashboard() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [admin, setAdmin] = useState({ name: "", profilePic: null, password: "" });
   const [nameInput, setNameInput] = useState("");
@@ -342,3 +342,5 @@ export default function AdminDashboard() {
     </div>
   );
 }
+
+export default AdminDashboard;

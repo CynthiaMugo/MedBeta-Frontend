@@ -12,7 +12,7 @@ import {
   X,
 } from "lucide-react";
 
-export default function LabDashboard() {
+function LabDashboard() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [technician, setTechnician] = useState({
     name: "",
@@ -360,3 +360,4 @@ export default function LabDashboard() {
     </div>
   );
 }
+export default LabDashboard;

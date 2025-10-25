@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function LabAuth() {
+function LabAuth() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [accessCode, setAccessCode] = useState("");
@@ -116,3 +116,5 @@ export default function LabAuth() {
     </div>
   );
 }
+
+export default LabAuth;

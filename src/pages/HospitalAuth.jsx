@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { User, UploadCloud } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-export default function HospitalAuth() {
+function HospitalAuth() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [accessCode, setAccessCode] = useState("");
@@ -120,3 +120,4 @@ export default function HospitalAuth() {
     </div>
   );
 }
+export default HospitalAuth;

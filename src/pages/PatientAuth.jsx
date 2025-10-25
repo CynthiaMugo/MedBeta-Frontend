@@ -12,7 +12,7 @@ const countryCodes = [
   { code: "+91", country: "India" },
 ];
 
-export default function PatientAuthForm() {
+function PatientAuthForm() {
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -161,3 +161,5 @@ export default function PatientAuthForm() {
     </div>
   );
 }
+
+export default PatientAuthForm;
