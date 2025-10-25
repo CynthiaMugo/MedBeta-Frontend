@@ -1,426 +1,269 @@
-// src/pages/DoctorsDashboard.jsx
+// src/pages/DoctorPortal.jsx
 import React, { useState, useMemo } from "react";
-import { Calendar, User, FlaskRound, Pill, LogOut } from "lucide-react";
+import { Calendar, User, FlaskRound, Pill } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function DoctorDashboard() {
-  const [profilePic, setProfilePic] = useState("https://via.placeholder.com/100");
+export default function DoctorPortal() {
   const [doctorName] = useState("Dr. Ian Mabruk");
   const [specialty] = useState("Cardiologist");
+  const [profilePic, setProfilePic] = useState("https://via.placeholder.com/100");
 
-  const [activeTab, setActiveTab] = useState("bookings");
+  const [activeTab, setActiveTab] = useState("appointments");
   const [status, setStatus] = useState("Available");
-
-  const [notes, setNotes] = useState("");
-  const [labOrders, setLabOrders] = useState("");
-  const [prescriptions, setPrescriptions] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [appointments, setAppointments] = useState([
     { id: 1, date: "2025-10-21", time: "10:00 AM", patient: "Jane Doe", status: "pending" },
-    { id: 2, date: "2025-10-21", time: "11:30 AM", patient: "John Smith", status: "pending" },
+    { id: 2, date: "2025-10-21", time: "11:30 AM", patient: "John Smith", status: "confirmed" },
+    { id: 3, date: "2025-10-22", time: "02:00 PM", patient: "Alice Johnson", status: "pending" },
   ]);
-
-  const [newPatient, setNewPatient] = useState("");
-  const [newDate, setNewDate] = useState("");
-  const [newTime, setNewTime] = useState("");
 
   const [records, setRecords] = useState([]);
   const [remoteRecords, setRemoteRecords] = useState([]);
   const [accessKey, setAccessKey] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-
+  const [notes, setNotes] = useState("");
+  const [labOrders, setLabOrders] = useState("");
+  const [prescriptions, setPrescriptions] = useState("");
   const [selectedBooking, setSelectedBooking] = useState(null);
-  const [confirmationModal, setConfirmationModal] = useState({
-    isOpen: false,
-    appointment: null,
-  });
+  const [expandedRecord, setExpandedRecord] = useState(null);
+  const [confirmationModal, setConfirmationModal] = useState({ isOpen: false, appointment: null });
 
-  // ===== Image Handler =====
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
     if (file) setProfilePic(URL.createObjectURL(file));
   };
 
-  // ===== Appointment Actions =====
   const handleAppointmentAction = (appointment, action) => {
-    setAppointments((prev) =>
-      prev.map((a) => (a.id === appointment.id ? { ...a, status: action } : a))
-    );
+    setAppointments(prev => prev.map(a => a.id === appointment.id ? { ...a, status: action } : a));
     setConfirmationModal({ isOpen: false, appointment: null });
-    if (action === "confirmed") {
-      alert(`${appointment.patient}'s appointment confirmed!`);
-    } else if (action === "rejected") {
-      alert(`${appointment.patient}'s appointment was rejected!`);
-    }
+    alert(`${appointment.patient}'s appointment ${action}`);
   };
 
-  // ===== Save Record =====
   const handleSaveRecord = () => {
-    if (!notes.trim() && !labOrders.trim() && !prescriptions.trim()) {
-      return alert("Please enter consultation info.");
-    }
+    if (!notes && !labOrders && !prescriptions) return alert("Add consultation info.");
     const newRec = {
       id: Date.now(),
       patient: selectedBooking?.patient || "New Patient",
       doctor: doctorName,
       date: new Date().toISOString().slice(0, 10),
-      notes: `Notes: ${notes}\nLab Orders: ${labOrders}\nPrescription: ${prescriptions}`,
+      notes,
+      labOrders,
+      prescriptions,
     };
-    setRecords((prev) => [newRec, ...prev]);
-    setNotes("");
-    setLabOrders("");
-    setPrescriptions("");
-    alert("Record saved successfully!");
+    setRecords(prev => [newRec, ...prev]);
+    setNotes(""); setLabOrders(""); setPrescriptions("");
+    alert("Record saved!");
   };
 
-  // ===== Add Booking from Receptionist =====
-  const handleAddBooking = () => {
-    if (!newPatient || !newDate || !newTime)
-      return alert("Please fill all fields to add booking.");
-    const newAppointment = {
-      id: Date.now(),
-      patient: newPatient,
-      date: newDate,
-      time: newTime,
-      status: "pending",
-    };
-    setAppointments((prev) => [...prev, newAppointment]);
-    setNewPatient("");
-    setNewDate("");
-    setNewTime("");
-    alert("New booking added from receptionist!");
+  const sendLabRequest = () => { if (!labOrders) return alert("Add lab orders."); alert(`Lab request sent:\n${labOrders}`); };
+  const sendPharmaRequest = () => { if (!prescriptions) return alert("Add prescription."); alert(`Prescription sent:\n${prescriptions}`); };
+
+  const fetchRemoteRecords = () => {
+    if (!accessKey) return alert("Enter access key.");
+    const remote = [
+      { id: 101, patient: "Remote Patient A", doctor: "Dr. Remote", date: "2025-08-15", notes: "Follow-up on previous tests", labOrders: "Blood Test, X-Ray", prescriptions: "Vitamin D, Aspirin" },
+      { id: 102, patient: "Remote Patient B", doctor: "Dr. Remote", date: "2025-09-10", notes: "Annual checkup", labOrders: "Cholesterol, ECG", prescriptions: "Statins" },
+    ];
+    setRemoteRecords(remote);
+    alert("Remote records loaded!");
   };
 
-  // ===== Filtered Records =====
   const filteredRecords = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return [...records, ...remoteRecords];
-    return [...records, ...remoteRecords].filter(
-      (r) =>
-        r.patient.toLowerCase().includes(q) ||
-        (r.notes || "").toLowerCase().includes(q)
-    );
+    return [...records, ...remoteRecords].filter(r => r.patient.toLowerCase().includes(q) || r.notes.toLowerCase().includes(q));
   }, [records, remoteRecords, searchQuery]);
 
-  // ===== Appointments Count =====
-  const getAppointmentsCount = (dateStr) =>
-    appointments.filter((a) => a.date === dateStr && a.status === "confirmed").length;
+  const groupedAppointments = useMemo(() => ({
+    pending: appointments.filter(a => a.status === "pending"),
+    confirmed: appointments.filter(a => a.status === "confirmed"),
+    rejected: appointments.filter(a => a.status === "rejected"),
+  }), [appointments]);
 
-  // ===== Logout =====
-  const handleLogout = () => {
-    if (window.confirm("Are you sure you want to log out?")) {
-      window.location.href = "/";
-    }
-  };
+  const getAppointmentsCount = (dateStr) => appointments.filter(a => a.date === dateStr && a.status === "confirmed").length;
 
-  // ===== UI =====
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-800 p-6 font-sans">
+    <div className="min-h-screen bg-gradient-to-br from-green-200 via-green-400 to-green-100 p-6 font-sans">
       {/* Header */}
       <header className="max-w-6xl mx-auto flex items-center justify-between py-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 flex items-center justify-center bg-teal-500 rounded-full shadow">
-            <span className="font-bold text-white text-lg">+</span>
-          </div>
-          <div>
-            <h2 className="text-xl font-bold">MedBeta</h2>
-            <p className="text-xs text-gray-500">Doctor Portal</p>
-          </div>
+        <div>
+          <h2 className="text-2xl font-bold text-green-900">MedBeta</h2>
+          <p className="text-sm text-green-700">Doctor Portal</p>
         </div>
-
         <div className="flex items-center gap-4">
-          <div className="hidden sm:block text-right mr-3">
-            <div className="text-sm font-medium">{doctorName}</div>
-            <div className="text-xs text-gray-500">{specialty}</div>
-          </div>
-          <label className="relative">
-            <img
-              src={profilePic}
-              alt="Profile"
-              className="w-12 h-12 rounded-full object-cover ring-2 ring-white shadow"
-            />
-            <input
-              type="file"
-              accept="image/*"
-              className="absolute inset-0 opacity-0 cursor-pointer"
-              onChange={handleImageChange}
-            />
+          <label className="relative cursor-pointer">
+            <img src={profilePic} alt="Profile" className="w-12 h-12 rounded-full ring-2 ring-green-500 shadow" />
+            <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleImageChange} />
           </label>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-full text-sm hover:bg-red-600 shadow-sm"
-          >
-            <LogOut size={16} /> Logout
-          </button>
         </div>
       </header>
 
-      {/* Main */}
-      <main className="max-w-6xl mx-auto bg-white rounded-2xl shadow-sm p-8 mt-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <div>
-            <h1 className="text-4xl font-extrabold leading-tight">
-              Welcome back, <span className="text-black">{doctorName}</span>
-            </h1>
-            <p className="mt-2 text-gray-500">
-              Manage bookings, patient records, and consultation panels below.
-            </p>
+      <main className="max-w-6xl mx-auto mt-6 grid lg:grid-cols-3 gap-6">
+        {/* Left Section */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Tabs */}
+          <div className="flex gap-3 mb-4">
+            <button onClick={() => setActiveTab("appointments")} className={`px-4 py-2 rounded-xl font-semibold ${activeTab === "appointments" ? "bg-green-600 text-white" : "bg-white text-green-800 border border-green-300"}`}>Appointments</button>
+            <button onClick={() => setActiveTab("records")} className={`px-4 py-2 rounded-xl font-semibold ${activeTab === "records" ? "bg-green-600 text-white" : "bg-white text-green-800 border border-green-300"}`}>Patient Records</button>
           </div>
 
-          <div className="flex flex-wrap gap-3">
-            <button
-              onClick={() => setActiveTab("bookings")}
-              className={`px-5 py-2 rounded-xl border ${
-                activeTab === "bookings"
-                  ? "bg-teal-500 text-white border-teal-500"
-                  : "bg-white text-gray-800 border-gray-200"
-              }`}
-            >
-              Manage Bookings
-            </button>
-            <button
-              onClick={() => setActiveTab("records")}
-              className={`px-5 py-2 rounded-xl border ${
-                activeTab === "records"
-                  ? "bg-teal-500 text-white border-teal-500"
-                  : "bg-white text-gray-800 border-gray-200"
-              }`}
-            >
-              View Records
-            </button>
-          </div>
-        </div>
-
-        {/* Bookings Section */}
-        {activeTab === "bookings" && (
-          <section className="mt-8 bg-gray-50 p-6 rounded-xl shadow-inner">
-            <h3 className="text-2xl font-bold mb-4">Manage Bookings</h3>
-
-            {/* Add new booking (Receptionist Simulation) */}
-            <div className="flex flex-wrap gap-3 mb-6">
-              <input
-                type="text"
-                placeholder="Patient Name"
-                value={newPatient}
-                onChange={(e) => setNewPatient(e.target.value)}
-                className="border rounded-md p-2 w-40 text-sm"
-              />
-              <input
-                type="date"
-                value={newDate}
-                onChange={(e) => setNewDate(e.target.value)}
-                className="border rounded-md p-2 text-sm"
-              />
-              <input
-                type="time"
-                value={newTime}
-                onChange={(e) => setNewTime(e.target.value)}
-                className="border rounded-md p-2 text-sm"
-              />
-              <button
-                onClick={handleAddBooking}
-                className="px-4 py-2 bg-teal-500 text-white rounded-md hover:brightness-95"
-              >
-                Add Booking
-              </button>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="text-sm text-gray-600 border-b">
-                    <th className="py-3 px-4">Patient</th>
-                    <th className="py-3 px-4">Date</th>
-                    <th className="py-3 px-4">Time</th>
-                    <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {appointments.map((a) => (
-                    <tr key={a.id} className="border-t hover:bg-gray-100/50">
-                      <td className="py-3 px-4 font-medium">{a.patient}</td>
-                      <td className="py-3 px-4">{a.date}</td>
-                      <td className="py-3 px-4">{a.time}</td>
-                      <td className="py-3 px-4 capitalize">
-                        {a.status === "confirmed" ? (
-                          <span className="text-teal-600 font-semibold">Confirmed</span>
-                        ) : (
-                          <span className="text-yellow-600">{a.status}</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 flex gap-2">
-                        <button
-                          onClick={() =>
-                            setConfirmationModal({ isOpen: true, appointment: a })
-                          }
-                          className="px-3 py-1 bg-teal-500 text-white rounded-md"
-                        >
-                          Confirm
-                        </button>
-                        <button
-                          onClick={() => handleAppointmentAction(a, "rejected")}
-                          className="px-3 py-1 border rounded-md"
-                        >
-                          Reject
-                        </button>
-                        <button
-                          onClick={() => setSelectedBooking(a)}
-                          className="px-3 py-1 border rounded-md"
-                        >
-                          Consult
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Consultation Panel */}
-            <AnimatePresence>
-              {selectedBooking && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 20 }}
-                  transition={{ duration: 0.3 }}
-                  className="mt-6 bg-white border rounded-xl p-6 shadow-sm"
-                >
-                  <h4 className="text-lg font-semibold mb-4">
-                    Consultation - {selectedBooking.patient}
-                  </h4>
-                  <div className="space-y-4">
-                    <textarea
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      placeholder="Doctor's Notes..."
-                      className="w-full border rounded-md p-3 text-sm h-20"
-                    />
-                    <textarea
-                      value={labOrders}
-                      onChange={(e) => setLabOrders(e.target.value)}
-                      placeholder="Lab Orders..."
-                      className="w-full border rounded-md p-3 text-sm h-20"
-                    />
-                    <textarea
-                      value={prescriptions}
-                      onChange={(e) => setPrescriptions(e.target.value)}
-                      placeholder="Prescription..."
-                      className="w-full border rounded-md p-3 text-sm h-20"
-                    />
-                    <div className="flex justify-end gap-3">
-                      <button
-                        onClick={() => setSelectedBooking(null)}
-                        className="px-4 py-2 bg-gray-200 rounded-md"
+          {/* Kanban Appointments */}
+          {activeTab === "appointments" && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {["pending", "confirmed", "rejected"].map(statusKey => (
+                <div key={statusKey} className="bg-white p-3 rounded-xl shadow flex flex-col">
+                  <h4 className="font-semibold text-green-900 capitalize mb-2">{statusKey}</h4>
+                  <div className="space-y-3 overflow-y-auto max-h-[400px]">
+                    {groupedAppointments[statusKey].map(a => (
+                      <motion.div
+                        key={a.id}
+                        layout
+                        className="p-3 bg-green-50 rounded-xl shadow hover:shadow-lg transition cursor-pointer"
                       >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={handleSaveRecord}
-                        className="px-4 py-2 bg-teal-500 text-white rounded-md"
-                      >
-                        Save Record
-                      </button>
-                    </div>
+                        <div>
+                          <h5 className="font-semibold text-green-900">{a.patient}</h5>
+                          <p className="text-sm text-green-800">{a.date} • {a.time}</p>
+                        </div>
+                        <div className="flex gap-2 mt-2">
+                          {statusKey !== "confirmed" && <button onClick={() => handleAppointmentAction(a, "confirmed")} className="px-2 py-1 bg-green-500 text-white rounded text-sm">Confirm</button>}
+                          {statusKey !== "rejected" && <button onClick={() => handleAppointmentAction(a, "rejected")} className="px-2 py-1 border text-green-800 rounded text-sm">Reject</button>}
+                          <button onClick={() => setSelectedBooking(a)} className="px-2 py-1 bg-green-700 text-white rounded text-sm">Consult</button>
+                        </div>
+                      </motion.div>
+                    ))}
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </section>
-        )}
-
-        {/* Patient Records */}
-        {activeTab === "records" && (
-          <section className="mt-8 bg-gray-50 p-6 rounded-xl shadow-inner">
-            <h3 className="text-2xl font-bold mb-4">Patient Records</h3>
-            <input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full border rounded-full px-4 py-3 text-sm mb-4"
-              placeholder="Search patient..."
-            />
-            <div className="space-y-3">
-              {filteredRecords.length === 0 && (
-                <div className="text-gray-500 text-center py-6">No records found.</div>
-              )}
-              {filteredRecords.map((r) => (
-                <div key={r.id} className="border rounded-md p-4 bg-white shadow-sm">
-                  <p className="font-medium">{r.patient}</p>
-                  <p className="text-xs text-gray-500">
-                    {r.date} • {r.doctor}
-                  </p>
-                  <p className="text-sm mt-2 whitespace-pre-wrap">{r.notes}</p>
                 </div>
               ))}
             </div>
-          </section>
-        )}
+          )}
 
-        {/* Improved Calendar */}
-        <section className="mt-10 bg-gray-900 text-white p-6 rounded-xl shadow-inner">
-          <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
-            <Calendar /> Appointment Calendar
-          </h4>
-          <div className="grid grid-cols-7 gap-2">
-            {Array.from({ length: 31 }).map((_, i) => {
-              const dateStr = `2025-10-${String(i + 1).padStart(2, "0")}`;
-              const count = getAppointmentsCount(dateStr);
-              return (
-                <div
-                  key={i}
-                  className={`p-3 rounded-lg text-center cursor-pointer transition-transform hover:scale-105 ${
-                    count
-                      ? "bg-teal-600 ring-2 ring-teal-400"
-                      : "bg-white/10 hover:bg-white/20"
-                  }`}
-                >
-                  <span className="font-semibold text-sm">{i + 1}</span>
-                  {count > 0 && (
-                    <span className="block text-xs text-teal-200 mt-1">{count} appt</span>
-                  )}
+          {/* Patient Records */}
+          {activeTab === "records" && (
+            <div className="space-y-3">
+              <div className="flex gap-2 mb-3">
+                <input value={accessKey} onChange={e => setAccessKey(e.target.value)} placeholder="Access Key" className="p-2 border rounded w-64" />
+                <button onClick={fetchRemoteRecords} className="px-3 py-1 bg-green-500 text-white rounded hover:brightness-95">Fetch Records</button>
+              </div>
+
+              {filteredRecords.length === 0 ? (
+                <p className="text-green-800">No records found</p>
+              ) : (
+                <div className="space-y-3">
+                  {filteredRecords.map(r => (
+                    <motion.div
+                      key={r.id}
+                      layout
+                      className="bg-white p-4 rounded-xl shadow hover:shadow-lg transition cursor-pointer"
+                      onClick={() => setExpandedRecord(expandedRecord?.id === r.id ? null : r)}
+                    >
+                      <div className="flex justify-between items-center">
+                        <h5 className="font-semibold text-green-900">{r.patient}</h5>
+                        <span className="text-sm text-green-700">{r.date}</span>
+                      </div>
+                      <AnimatePresence>
+                        {expandedRecord?.id === r.id && (
+                          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="mt-3 space-y-2">
+                            <div>
+                              <h6 className="text-sm font-medium text-green-800 flex items-center gap-2"><User /> Doctor Notes</h6>
+                              <p className="text-sm text-green-700 whitespace-pre-wrap">{r.notes}</p>
+                            </div>
+                            <div>
+                              <h6 className="text-sm font-medium text-green-800 flex items-center gap-2"><FlaskRound /> Lab Tests</h6>
+                              <p className="text-sm text-green-700 whitespace-pre-wrap">{r.labOrders}</p>
+                            </div>
+                            <div>
+                              <h6 className="text-sm font-medium text-green-800 flex items-center gap-2"><Pill /> Prescriptions</h6>
+                              <p className="text-sm text-green-700 whitespace-pre-wrap">{r.prescriptions}</p>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  ))}
                 </div>
-              );
-            })}
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Right Section */}
+        <div className="space-y-6">
+          <div className="bg-white p-6 rounded-xl shadow text-center">
+            <img src={profilePic} alt="Doctor" className="w-24 h-24 mx-auto rounded-full border-4 border-green-400 shadow" />
+            <h4 className="mt-3 font-semibold text-green-900">{doctorName}</h4>
+            <p className="text-sm text-green-800">{specialty}</p>
+            <div className="mt-3">
+              <label className="text-sm font-medium text-green-700">Status</label>
+              <select value={status} onChange={e => setStatus(e.target.value)} className="mt-1 w-full border rounded p-2">
+                <option>Available</option>
+                <option>On Break</option>
+                <option>In Lunch</option>
+                <option>Offline</option>
+              </select>
+            </div>
           </div>
-        </section>
+
+          <div className="bg-green-900 text-white p-4 rounded-xl shadow">
+            <h5 className="font-semibold mb-2 flex items-center gap-2"><Calendar /> Appointments Calendar</h5>
+            <div className="grid grid-cols-7 gap-1">
+              {Array.from({ length: 30 }).map((_, i) => {
+                const dateStr = `2025-10-${(i + 1).toString().padStart(2, "0")}`;
+                const count = getAppointmentsCount(dateStr);
+                return (
+                  <div key={i} className={`p-2 text-center rounded cursor-pointer ${count ? "bg-green-500" : "bg-green-800/50"}`}>
+                    <span className="text-sm font-medium">{i + 1}</span>
+                    {count ? <span className="block text-xs">{count} appt</span> : null}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </main>
 
-      {/* Confirmation Modal */}
+      {/* Confirm Modal */}
       {confirmationModal.isOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="absolute inset-0 bg-black opacity-30" />
-          <div className="relative bg-white rounded-xl w-11/12 max-w-sm p-6 shadow-xl text-center">
-            <h3 className="text-lg font-semibold mb-3">Confirm Appointment</h3>
-            <p className="text-gray-600 mb-6">
-              Confirm appointment for{" "}
-              <span className="font-semibold">
-                {confirmationModal.appointment?.patient}
-              </span>{" "}
-              on {confirmationModal.appointment?.date} at{" "}
-              {confirmationModal.appointment?.time}?
-            </p>
-            <div className="flex justify-center gap-3">
-              <button
-                onClick={() =>
-                  handleAppointmentAction(confirmationModal.appointment, "confirmed")
-                }
-                className="px-5 py-2 bg-teal-500 text-white rounded-md"
-              >
-                Yes
-              </button>
-              <button
-                onClick={() =>
-                  setConfirmationModal({ isOpen: false, appointment: null })
-                }
-                className="px-5 py-2 border rounded-md bg-gray-200"
-              >
-                Cancel
-              </button>
+          <div className="bg-white p-6 rounded-xl shadow relative z-60">
+            <h3 className="font-semibold text-lg mb-2">Confirm Appointment</h3>
+            <p className="text-green-800 mb-4">Confirm {confirmationModal.appointment.patient}'s appointment?</p>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setConfirmationModal({ isOpen: false, appointment: null })} className="px-3 py-1 border rounded text-green-800">Cancel</button>
+              <button onClick={() => handleAppointmentAction(confirmationModal.appointment, "confirmed")} className="px-3 py-1 bg-green-600 text-white rounded">Confirm</button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Consultation Panel */}
+      <AnimatePresence>
+        {selectedBooking && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} transition={{ duration: 0.3 }} className="fixed bottom-6 left-1/2 transform -translate-x-1/2 w-11/12 md:w-2/3 bg-white rounded-xl shadow p-6 z-40">
+            <h4 className="font-semibold text-green-900 mb-3">{selectedBooking.patient} - Consultation</h4>
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm font-medium flex items-center gap-2"><User /> Notes</label>
+                <textarea value={notes} onChange={e => setNotes(e.target.value)} className="w-full border rounded p-2 mt-1" placeholder="Doctor notes..." />
+              </div>
+              <div>
+                <label className="text-sm font-medium flex items-center gap-2"><FlaskRound /> Lab Orders</label>
+                <textarea value={labOrders} onChange={e => setLabOrders(e.target.value)} className="w-full border rounded p-2 mt-1" placeholder="Lab orders..." />
+                <button onClick={sendLabRequest} className="mt-1 px-3 py-1 bg-green-500 text-white rounded hover:brightness-95">Send Lab Request</button>
+              </div>
+              <div>
+                <label className="text-sm font-medium flex items-center gap-2"><Pill /> Prescription</label>
+                <textarea value={prescriptions} onChange={e => setPrescriptions(e.target.value)} className="w-full border rounded p-2 mt-1" placeholder="Prescriptions..." />
+                <button onClick={sendPharmaRequest} className="mt-1 px-3 py-1 bg-green-700 text-white rounded hover:brightness-95">Send to Pharmacist</button>
+              </div>
+              <div className="flex justify-end gap-3 mt-3">
+                <button onClick={() => setSelectedBooking(null)} className="px-4 py-2 rounded border text-green-800">Cancel</button>
+                <button onClick={handleSaveRecord} className="px-5 py-2 bg-green-600 text-white rounded hover:brightness-110">Save Record</button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -1,5 +1,15 @@
+// src/pages/PharmacistDashboard.jsx
 import React, { useState, useEffect } from "react";
-import { Pill, ClipboardList, Bell, LogOut, User, Sun, Moon } from "lucide-react";
+import {
+  Pill,
+  ClipboardList,
+  LogOut,
+  User,
+  Sun,
+  Moon,
+  CheckCircle,
+  Clock,
+} from "lucide-react";
 
 // Dummy prescription data
 const initialPrescriptions = [
@@ -52,23 +62,23 @@ export default function PharmacistDashboard() {
   // ----- LOGIN PAGE -----
   if (!loggedIn) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-blue-500">
-        <div className="bg-blue-100 p-8 rounded-2xl shadow-lg w-80 text-center">
-          <h2 className="text-3xl font-bold mb-4 text-blue-900">Welcome</h2>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-700 via-blue-500 to-cyan-400">
+        <div className="bg-white text-gray-800 p-10 rounded-3xl shadow-2xl w-96 flex flex-col gap-6">
+          <h2 className="text-3xl font-bold text-center text-blue-700">Pharmacist Login</h2>
           <input
             type="text"
-            placeholder="Enter your name"
+            placeholder="Enter your full name"
             value={nameInput}
             onChange={(e) => setNameInput(e.target.value)}
-            className="border px-3 py-2 rounded-lg w-full mb-4"
+            className="border border-blue-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
           />
-          <label className="block mb-4 text-blue-900 cursor-pointer">
+          <label className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-xl cursor-pointer hover:bg-blue-200">
             Upload Profile Picture
             <input type="file" className="hidden" onChange={handleProfilePic} />
           </label>
           <button
             onClick={handleLogin}
-            className="w-full px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800"
+            className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition"
           >
             Get Started
           </button>
@@ -78,76 +88,106 @@ export default function PharmacistDashboard() {
   }
 
   // ----- DASHBOARD -----
-  const themeClasses = theme === "blue" ? "bg-blue-50 text-blue-900" : "bg-gray-900 text-white";
+  const themeClasses = theme === "blue" ? "bg-blue-50 text-gray-900" : "bg-gray-900 text-white";
 
   return (
     <div className={`min-h-screen ${themeClasses}`}>
       {/* HEADER */}
-      <header className={`py-6 px-8 flex justify-between items-center shadow-lg ${theme === "blue" ? "bg-blue-600 text-white" : "bg-gray-900 text-white"}`}>
+      <header className={`flex justify-between items-center p-6 shadow-md ${theme === "blue" ? "bg-blue-600 text-white" : "bg-gray-900 text-white"}`}>
         <h1 className="text-2xl font-bold">Pharmacist Dashboard</h1>
         <div className="flex items-center gap-4">
-          <button onClick={toggleTheme} className="flex items-center gap-1 px-3 py-1 rounded-lg bg-white text-blue-700 hover:bg-gray-200">
-            {theme === "blue" ? <Sun size={16} /> : <Moon size={16} />}
-            Theme
+          <button onClick={toggleTheme} className="flex items-center gap-2 bg-white text-blue-700 px-3 py-1 rounded-xl hover:bg-gray-200 transition">
+            {theme === "blue" ? <Sun size={16} /> : <Moon size={16} />} Theme
           </button>
-          <button onClick={handleLogout} className="flex items-center gap-2 bg-white text-blue-700 px-4 py-2 rounded-lg shadow hover:bg-gray-200">
+          <button onClick={handleLogout} className="flex items-center gap-2 bg-white text-blue-700 px-4 py-2 rounded-xl hover:bg-gray-200 transition">
             <LogOut size={18} /> Logout
           </button>
         </div>
       </header>
 
-      <main className="p-10 grid grid-cols-1 md:grid-cols-4 gap-8">
-        {/* Profile Panel */}
-        <div className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-2xl transition flex flex-col items-center">
-          <h2 className="font-semibold text-lg mb-3">Your Profile</h2>
+      <main className="p-10 grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* PROFILE PANEL */}
+        <div className="bg-gradient-to-b from-blue-400 to-blue-200 p-6 rounded-3xl shadow-lg flex flex-col items-center text-center hover:shadow-2xl transition">
           {pharmacist.profilePic ? (
-            <img src={pharmacist.profilePic} alt="Profile" className="w-24 h-24 rounded-full mb-3 object-cover" />
+            <img src={pharmacist.profilePic} alt="Profile" className="w-28 h-28 rounded-full object-cover border-4 border-white mb-4" />
           ) : (
-            <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center mb-3">
-              <User size={36} className="text-gray-400" />
+            <div className="w-28 h-28 rounded-full bg-white flex items-center justify-center mb-4 border-4 border-white">
+              <User size={40} className="text-blue-500" />
             </div>
           )}
-          <span className="font-semibold">{pharmacist.name}</span>
-          <label className="mt-3 cursor-pointer px-3 py-1 bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200 flex items-center gap-2">
+          <h2 className="font-bold text-xl">{pharmacist.name}</h2>
+          <label className="mt-4 px-4 py-2 bg-white text-blue-700 rounded-xl cursor-pointer hover:bg-blue-100 flex items-center gap-2">
             Upload Picture
             <input type="file" className="hidden" onChange={handleProfilePic} />
           </label>
         </div>
 
-        {/* Prescription Queue */}
-        <div className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-2xl transition col-span-3">
-          <Pill className="text-orange-600 w-10 h-10 mb-3" />
-          <h2 className="font-semibold text-lg mb-2">Prescription Queue</h2>
-          <p className="text-gray-600 mb-3">View and fulfill prescriptions sent by doctors.</p>
-          <ul className="text-gray-700">
+        {/* PRESCRIPTION QUEUE */}
+        <div className="bg-white p-6 rounded-3xl shadow-lg hover:shadow-2xl transition col-span-3">
+          <div className="flex items-center gap-2 mb-4">
+            <Pill className="text-orange-500 w-8 h-8" />
+            <h2 className="text-xl font-semibold">Prescription Queue</h2>
+          </div>
+          <ul className="space-y-3">
             {prescriptions.filter(p => p.status === "Pending").map((p) => (
-              <li key={p.id} className="mb-2 flex justify-between items-center border-b py-1">
-                <span>{p.patient} - {p.medication} ({p.doctor})</span>
+              <li key={p.id} className="flex justify-between items-center p-3 bg-blue-50 rounded-xl hover:bg-blue-100 transition">
+                <div>
+                  <span className="font-semibold">{p.patient}</span> - {p.medication} <span className="text-gray-500">({p.doctor})</span>
+                </div>
                 <button
                   onClick={() => markDone(p.id)}
-                  className="px-2 py-1 bg-green-100 text-green-800 rounded-lg hover:bg-green-200"
+                  className="flex items-center gap-2 px-3 py-1 bg-green-100 text-green-700 rounded-xl hover:bg-green-200 transition"
                 >
-                  Done
+                  <CheckCircle size={16} /> Done
                 </button>
               </li>
             ))}
+            {prescriptions.filter(p => p.status === "Pending").length === 0 && (
+              <li className="text-gray-500 text-center py-4">No pending prescriptions</li>
+            )}
           </ul>
         </div>
 
-        {/* Medication History */}
-        <div className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-2xl transition col-span-4">
-          <ClipboardList className="text-yellow-600 w-10 h-10 mb-3" />
-          <h2 className="font-semibold text-lg mb-2">Medication History</h2>
-          <p className="text-gray-600 mb-3">Past prescriptions handled by any pharmacist.</p>
-          <ul className="text-gray-700">
-            {prescriptions.map((p) => (
-              <li key={p.id} className="mb-2 flex justify-between items-center border-b py-1">
-                <span>
-                  {p.patient} - {p.medication} ({p.doctor}) by {p.pharmacist || "Unassigned"}
-                </span>
-              </li>
-            ))}
-          </ul>
+        {/* MEDICATION HISTORY */}
+        <div className="bg-white p-6 rounded-3xl shadow-lg hover:shadow-2xl transition col-span-4 mt-6 lg:mt-0">
+          <div className="flex items-center gap-2 mb-4">
+            <ClipboardList className="text-yellow-500 w-8 h-8" />
+            <h2 className="text-xl font-semibold">Medication History</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full table-auto border-collapse">
+              <thead className="bg-blue-100 rounded-xl">
+                <tr>
+                  <th className="px-4 py-2 text-left">Patient</th>
+                  <th className="px-4 py-2 text-left">Medication</th>
+                  <th className="px-4 py-2 text-left">Doctor</th>
+                  <th className="px-4 py-2 text-left">Pharmacist</th>
+                  <th className="px-4 py-2 text-left">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {prescriptions.map((p) => (
+                  <tr key={p.id} className="hover:bg-blue-50 transition">
+                    <td className="px-4 py-2">{p.patient}</td>
+                    <td className="px-4 py-2">{p.medication}</td>
+                    <td className="px-4 py-2">{p.doctor}</td>
+                    <td className="px-4 py-2">{p.pharmacist || "Unassigned"}</td>
+                    <td className="px-4 py-2">
+                      {p.status === "Done" ? (
+                        <span className="flex items-center gap-1 text-green-600 font-semibold">
+                          <CheckCircle size={16} /> Done
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1 text-orange-600 font-semibold">
+                          <Clock size={16} /> Pending
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </main>
     </div>
