@@ -36,7 +36,7 @@ export default function PatientAuthForm() {
       return;
     }
 
-    // ✅ Save unified user object for PrivateRoute
+    // Save unified user object for PrivateRoute
     const user = {
       name: form.name,
       email: form.email,
@@ -48,7 +48,7 @@ export default function PatientAuthForm() {
     localStorage.setItem("user", JSON.stringify(user));
     localStorage.setItem("patientName", form.name);
 
-    // ✅ Redirect to patient dashboard
+    // Redirect to patient dashboard
     navigate("/patient-dashboard");
   };
 

@@ -37,7 +37,7 @@ export default function PatientAuthForm() {
     setLoading(true);
 
     try {
-      // ✅ Build a user object compatible with PrivateRoute
+      // Build a user object compatible with PrivateRoute
       const user = {
         name: form.name,
         email: form.email,
