@@ -9,6 +9,7 @@ import PharmacistAuth from "./pages/PharmacistAuth";
 import LabAuth from "./pages/LabAuth";
 import AdminAuth from "./pages/AdminAuth";
 import HospitalAuth from "./pages/HospitalAuth";
+import SetupAccount from "./pages/SetupAccount";
 
 // ===== Dashboards =====
 import PatientDashboard from "./pages/PatientDashboard";
@@ -37,6 +38,8 @@ function App() {
         <Route path="/lab-auth" element={<LabAuth />} />
         <Route path="/admin-auth" element={<AdminAuth />} />
         <Route path="/hospital-auth" element={<HospitalAuth />} />
+        <Route path="/setup-password/:token" element={<SetupAccount />} />
+
 
         {/* ===== Protected Dashboards ===== */}
         <Route

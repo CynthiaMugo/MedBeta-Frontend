@@ -17,6 +17,7 @@ const dummyAppointments = [
   { id: 3, patient: "Bob Teen", doctor: "Dr. Williams", time: "1:00 PM", status: "Pending" },
 ];
 
+
 export default function HospitalDashboard() {
   const [loggedIn, setLoggedIn] = useState(JSON.parse(localStorage.getItem("hospitalLoggedIn")) || false);
   const [role, setRole] = useState("");
@@ -30,6 +31,18 @@ export default function HospitalDashboard() {
   const [appointments, setAppointments] = useState(JSON.parse(localStorage.getItem("appointments")) || dummyAppointments);
   const [messages, setMessages] = useState(JSON.parse(localStorage.getItem("hospitalMessages")) || []);
   const [newMessage, setNewMessage] = useState("");
+
+  // Auto-login for invited hospital users
+  useEffect(() => {
+    const globalUser = JSON.parse(localStorage.getItem("user"));
+    if (globalUser?.role === "hospital" && globalUser?.isVerified) {
+      setLoggedIn(true);
+      setNameInput(globalUser.name);
+      setEmailInput(globalUser.email);
+      setRole("admin"); // or "receptionist"
+    }
+  }, []);
+
 
   const [newPatientName, setNewPatientName] = useState("");
   const [newPatientEmail, setNewPatientEmail] = useState("");

@@ -28,6 +28,7 @@ export default function PrivateRoute({ role, children }) {
   if (user.isVerified === false) {
     return <Navigate to={`/${role}-auth`} replace />;
   }
+  console.log("PrivateRoute user:", user);
 
   // Otherwise, access granted
   return children;
