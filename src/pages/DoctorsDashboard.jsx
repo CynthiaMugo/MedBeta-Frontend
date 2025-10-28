@@ -2,6 +2,7 @@
 import React, { useState, useMemo } from "react";
 import { Calendar, User, FlaskRound, Pill } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import axios from "axios";
 
 export default function DoctorPortal() {
   const [doctorName] = useState("Dr. Ian Mabruk");
@@ -56,7 +57,29 @@ export default function DoctorPortal() {
   };
 
   const sendLabRequest = () => { if (!labOrders) return alert("Add lab orders."); alert(`Lab request sent:\n${labOrders}`); };
-  const sendPharmaRequest = () => { if (!prescriptions) return alert("Add prescription."); alert(`Prescription sent:\n${prescriptions}`); };
+  const sendPharmaRequest = async () => {
+    if (!prescriptions) return alert("Please add a prescription before sending.");
+
+    try {
+      const response = await axios.post("http://127.0.0.1:5000/prescriptions", {
+        doctor_id: loggedInDoctor?.id || 1,        
+        patient_id: selectedBooking?.patient_id || 2, 
+        medication_details: prescriptions,
+      });
+
+      alert("Prescription sent to pharmacist successfully!");
+      console.log("Prescription created:", response.data);
+      setPrescriptions("");
+    } catch (error) {
+      console.error("Error sending prescription:", error);
+      if (error.response) {
+        alert(`Error: ${error.response.data.error || "Something went wrong"}`);
+      } else {
+        alert("Network error. Check backend connection.");
+      }
+    }
+  };
+
 
   const fetchRemoteRecords = () => {
     if (!accessKey) return alert("Enter access key.");
