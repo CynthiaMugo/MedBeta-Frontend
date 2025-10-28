@@ -1,5 +1,6 @@
 // src/pages/LabDashboard.jsx
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import {
   FlaskRound,
   LogOut,
@@ -11,151 +12,112 @@ import {
   Settings,
   X,
 } from "lucide-react";
+import { API_URL } from "../config";
+import { useNavigate } from "react-router-dom";
 
 export default function LabDashboard() {
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [technician, setTechnician] = useState({
-    name: "",
-    profilePic: null,
-    password: "",
-  });
-  const [passwordInput, setPasswordInput] = useState("");
-
-  const [doctors] = useState([
-    { id: 1, name: "Dr. John Doe" },
-    { id: 2, name: "Dr. Jane Smith" },
-  ]);
-
-  const [patients] = useState([
-    { id: 1, name: "Patient A" },
-    { id: 2, name: "Patient B" },
-  ]);
-
-  const [testRequests, setTestRequests] = useState([
-    {
-      id: 1,
-      patientId: 1,
-      test: "Blood Test",
-      doctorId: 1,
-      status: "Pending",
-      findings: {
-        hemoglobin: { checked: false, value: "", normal: "Normal" },
-        wbc: { checked: false, value: "", normal: "Normal" },
-        platelets: { checked: false, value: "", normal: "Normal" },
-      },
-      resultNote: "",
-    },
-    {
-      id: 2,
-      patientId: 2,
-      test: "Urine Test",
-      doctorId: 2,
-      status: "Pending",
-      findings: {
-        glucose: { checked: false, value: "", normal: "Normal" },
-        protein: { checked: false, value: "", normal: "Normal" },
-        ketones: { checked: false, value: "", normal: "Normal" },
-      },
-      resultNote: "",
-    },
-  ]);
-
-  const [messages, setMessages] = useState([
-    { id: 1, from: "Dr. John Doe", message: "Requesting token for patient X" },
-  ]);
-  const [newMessage, setNewMessage] = useState("");
-  const [notifications, setNotifications] = useState([
-    { id: 1, text: "New test request received from Dr. John Doe" },
-  ]);
-
+  const navigate = useNavigate();
+  const [technician, setTechnician] = useState(null);
+  const [pendingTests, setPendingTests] = useState([]);
+  const [completedTests, setCompletedTests] = useState([]);
+  const [notifications, setNotifications] = useState([]);
   const [showSettings, setShowSettings] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
 
+  // Fetch technician data
   useEffect(() => {
-    const storedTech = JSON.parse(localStorage.getItem("technician"));
-    if (storedTech) {
-      setTechnician(storedTech);
-      setLoggedIn(true);
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/auth");
+      return;
     }
-  }, []);
 
-  useEffect(() => {
-    if (loggedIn) localStorage.setItem("technician", JSON.stringify(technician));
-  }, [loggedIn, technician]);
+    // Fetch pending and completed tests
+    fetchTests(token);
+    fetchCompletedTests(token);
+  }, [navigate]);
 
-  const handleLogout = () => {
-    setLoggedIn(false);
-    setTechnician({ name: "", profilePic: null, password: "" });
-    localStorage.removeItem("technician");
+  const fetchTests = async (token) => {
+    try {
+      const res = await axios.get(`${API_URL}/labtests`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setPendingTests(res.data);
+
+      if (res.data.length > 0) {
+        setTechnician({
+          name: res.data[0].technician_name || "Technician",
+          email: res.data[0].technician_email,
+        });
+      }
+    } catch (err) {
+      console.error("Error fetching tests:", err);
+      if (err.response?.status === 401) navigate("/auth");
+    }
   };
 
-  const handleProfilePic = (e) => {
-    setTechnician({ ...technician, profilePic: URL.createObjectURL(e.target.files[0]) });
+  const fetchCompletedTests = async (token) => {
+    try {
+      const res = await axios.get(`${API_URL}/labtests/history`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setCompletedTests(res.data);
+    } catch (err) {
+      console.error("Error fetching completed tests:", err);
+    }
+  };
+
+  // udate test results
+  const handleResultSubmit = async (testId, results) => {
+    const token = localStorage.getItem("token");
+    try {
+      await axios.post(
+        `${API_URL}/labtests/${testId}/update`,
+        { results, status: "Completed" },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setNotifications((prev) => [
+        ...prev,
+        { id: Date.now(), text: `Test ${testId} marked as completed.` },
+      ]);
+
+      // Refresh lists
+      fetchTests(token);
+      fetchCompletedTests(token);
+    } catch (err) {
+      console.error("Error updating test:", err);
+      alert("Failed to update test result!");
+    }
+  };
+
+  // Profile settings and logout
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/auth");
   };
 
   const handlePasswordChange = () => {
-    setTechnician({ ...technician, password: passwordInput });
     alert("Password updated successfully!");
     setPasswordInput("");
     setShowSettings(false);
   };
 
-  const toggleFinding = (testId, key) => {
-    setTestRequests((prev) =>
-      prev.map((t) =>
-        t.id === testId
-          ? {
-              ...t,
-              findings: {
-                ...t.findings,
-                [key]: { ...t.findings[key], checked: !t.findings[key].checked },
-              },
-            }
-          : t
-      )
+  if (!technician)
+    return (
+      <div className="min-h-screen flex items-center justify-center text-blue-700">
+        Loading technician dashboard...
+      </div>
     );
-  };
-
-  const handleFindingValue = (testId, key, field, value) => {
-    setTestRequests((prev) =>
-      prev.map((t) =>
-        t.id === testId
-          ? { ...t, findings: { ...t.findings, [key]: { ...t.findings[key], [field]: value } } }
-          : t
-      )
-    );
-  };
-
-  const handleResultNoteChange = (testId, value) => {
-    setTestRequests((prev) =>
-      prev.map((t) => (t.id === testId ? { ...t, resultNote: value } : t))
-    );
-  };
-
-  const sendResult = (id) => {
-    setTestRequests((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, status: "Completed" } : t))
-    );
-    alert("Test result sent!");
-  };
-
-  const sendMessage = () => {
-    if (!newMessage.trim()) return;
-    setMessages([...messages, { id: messages.length + 1, from: technician.name, message: newMessage }]);
-    setNewMessage("");
-  };
-
-  const getPatientName = (id) => patients.find((p) => p.id === id)?.name;
-  const getDoctorName = (id) => doctors.find((d) => d.id === id)?.name;
-
-  if (!loggedIn)
-    return <div className="min-h-screen flex items-center justify-center text-blue-700">Lab Dashboard Not Logged In</div>;
 
   return (
     <div className="min-h-screen bg-blue-50 text-gray-800">
       {/* HEADER */}
       <header className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white py-4 px-6 flex justify-between items-center shadow-lg">
-        <h1 className="text-2xl font-bold">Lab Dashboard</h1>
+        <h1 className="text-2xl font-bold flex items-center gap-2">
+          <FlaskRound size={26} /> Lab Dashboard
+        </h1>
         <div className="flex items-center gap-3">
           {/* Notifications */}
           <div className="relative">
@@ -168,7 +130,7 @@ export default function LabDashboard() {
               )}
             </button>
             {showNotifications && (
-              <div className="absolute right-0 mt-2 w-60 bg-white text-gray-800 rounded-lg shadow-lg p-3 z-50">
+              <div className="absolute right-0 mt-2 w-64 bg-white text-gray-800 rounded-lg shadow-lg p-3 z-50">
                 <div className="flex justify-between items-center mb-2">
                   <span className="font-semibold">Notifications</span>
                   <button onClick={() => setShowNotifications(false)}>
@@ -184,25 +146,24 @@ export default function LabDashboard() {
             )}
           </div>
 
-          {/* Profile pic + Settings + Logout */}
+          {/* Technician Info */}
           <div className="flex items-center gap-2">
-            {technician.profilePic ? (
-              <img
-                src={technician.profilePic}
-                alt="Profile"
-                className="w-10 h-10 rounded-full object-cover border-2 border-white"
-              />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center border-2 border-white">
-                <User size={18} className="text-gray-400" />
-              </div>
-            )}
-            <button onClick={() => setShowSettings(true)} className="bg-white text-blue-700 px-2 py-1 rounded-lg hover:bg-cyan-100 text-sm">
+            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-blue-600">
+              <User size={18} />
+            </div>
+            <div className="text-sm">
+              <p className="font-semibold">{technician.name}</p>
+              <p className="text-xs text-gray-200">{technician.email}</p>
+            </div>
+            <button
+              onClick={() => setShowSettings(true)}
+              className="bg-white text-blue-700 p-1 rounded-lg hover:bg-cyan-100 text-sm"
+            >
               <Settings size={16} />
             </button>
             <button
-              className="flex items-center gap-1 bg-white text-blue-700 px-3 py-1 rounded-lg shadow hover:bg-cyan-100 text-sm"
               onClick={handleLogout}
+              className="flex items-center gap-1 bg-white text-blue-700 px-3 py-1 rounded-lg shadow hover:bg-cyan-100 text-sm"
             >
               <LogOut size={16} /> Logout
             </button>
@@ -210,105 +171,65 @@ export default function LabDashboard() {
         </div>
       </header>
 
+      {/* MAIN SECTION */}
       <main className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* LAB TEST REQUESTS */}
+        {/* Pending Tests */}
         <div className="lg:col-span-2 space-y-4">
-          {testRequests.map((tr) => (
-            <div key={tr.id} className="bg-white p-4 rounded-xl shadow hover:shadow-2xl transition">
-              <div className="flex justify-between items-center mb-2">
-                <span className="font-semibold text-sm">
-                  {getPatientName(tr.patientId)} - {tr.test} ({getDoctorName(tr.doctorId)}) [{tr.status}]
-                </span>
-                {tr.status === "Pending" && (
+          <h2 className="text-lg font-bold mb-2">🧪 Pending Tests</h2>
+          {pendingTests.length === 0 ? (
+            <p className="text-gray-600 text-sm">No pending tests assigned.</p>
+          ) : (
+            pendingTests.map((t) => (
+              <div
+                key={t.id}
+                className="bg-white p-4 rounded-xl shadow hover:shadow-2xl transition"
+              >
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-semibold text-sm">
+                    {t.patient_name} ({t.patient_email}) - {t.test_name}
+                  </span>
                   <button
-                    onClick={() => sendResult(tr.id)}
+                    onClick={() =>
+                      handleResultSubmit(
+                        t.id,
+                        prompt(`Enter results for ${t.test_name}:`)
+                      )
+                    }
                     className="flex items-center gap-1 px-2 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
                   >
-                    <Send size={14} /> Send
+                    <Send size={14} /> Submit Result
                   </button>
-                )}
-              </div>
-
-              {tr.status === "Pending" && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-2">
-                  {Object.keys(tr.findings).map((key) => (
-                    <div key={key} className="bg-blue-50 p-2 rounded shadow-sm">
-                      <label className="flex items-center gap-2 text-sm">
-                        <input
-                          type="checkbox"
-                          checked={tr.findings[key].checked}
-                          onChange={() => toggleFinding(tr.id, key)}
-                          className="w-3 h-3 accent-blue-600"
-                        />
-                        {key.charAt(0).toUpperCase() + key.slice(1)}
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Value"
-                        value={tr.findings[key].value}
-                        onChange={(e) => handleFindingValue(tr.id, key, "value", e.target.value)}
-                        className="mt-1 border rounded-lg p-1 w-full text-sm"
-                      />
-                      <select
-                        value={tr.findings[key].normal}
-                        onChange={(e) => handleFindingValue(tr.id, key, "normal", e.target.value)}
-                        className="mt-1 border rounded-lg p-1 w-full text-sm"
-                      >
-                        <option value="Normal">Normal</option>
-                        <option value="Abnormal">Abnormal</option>
-                      </select>
-                    </div>
-                  ))}
                 </div>
-              )}
-
-              {tr.status === "Pending" && (
-                <textarea
-                  placeholder="Enter result notes..."
-                  value={tr.resultNote}
-                  onChange={(e) => handleResultNoteChange(tr.id, e.target.value)}
-                  className="w-full border rounded-lg p-2 resize-none h-20 text-sm"
-                />
-              )}
-            </div>
-          ))}
+                <p className="text-xs text-gray-500">
+                  Doctor: {t.doctor_name} ({t.doctor_email})
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Requested: {new Date(t.date_requested).toLocaleString()}
+                </p>
+              </div>
+            ))
+          )}
         </div>
 
-        {/* MESSAGES & TOKENS */}
-        <div className="space-y-4">
-          <div className="bg-white p-4 rounded-xl shadow hover:shadow-2xl transition">
-            <h2 className="font-semibold text-sm flex items-center gap-2 mb-2">
-              <MessageCircle size={18} className="text-blue-600" /> Messages & Access Tokens
-            </h2>
-            <div className="max-h-32 overflow-y-auto border rounded-lg p-2 mb-2 bg-blue-50 text-sm">
-              {messages.map((m) => (
-                <div key={m.id} className="mb-1">
-                  <span className="font-semibold">{m.from}: </span>
-                  <span>{m.message}</span>
+        {/* Completed Tests */}
+        <div>
+          <h2 className="text-lg font-bold mb-2">📜 Completed Tests</h2>
+          <div className="bg-white rounded-xl p-3 shadow max-h-[500px] overflow-y-auto">
+            {completedTests.length === 0 ? (
+              <p className="text-gray-600 text-sm">No completed tests yet.</p>
+            ) : (
+              completedTests.map((t) => (
+                <div key={t.id} className="border-b py-2 text-sm">
+                  <p className="font-semibold">{t.test_name}</p>
+                  <p>Patient: {t.patient_name}</p>
+                  <p>Doctor: {t.doctor_name}</p>
+                  <p>Result: {t.results || "N/A"}</p>
+                  <p className="text-xs text-gray-500">
+                    Done on: {new Date(t.date_completed).toLocaleString()}
+                  </p>
                 </div>
-              ))}
-            </div>
-            <div className="flex gap-2 mb-2">
-              <input
-                type="text"
-                placeholder="Type message..."
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                className="border rounded-lg p-1 w-full text-sm"
-              />
-              <button
-                onClick={sendMessage}
-                className="bg-blue-600 text-white px-2 py-1 rounded-lg hover:bg-blue-700 transition text-sm"
-              >
-                <Send size={14} />
-              </button>
-            </div>
-            <button
-              onClick={() => alert("Assign token modal placeholder")}
-              className="w-full bg-blue-600 text-white px-2 py-1 rounded-lg hover:bg-blue-700 transition text-sm"
-            >
-              Assign Token
-            </button>
+              ))
+            )}
           </div>
         </div>
       </main>
@@ -325,20 +246,12 @@ export default function LabDashboard() {
             </button>
             <h3 className="text-base font-semibold mb-2">Profile Settings</h3>
             <div className="flex flex-col items-center">
-              {technician.profilePic ? (
-                <img
-                  src={technician.profilePic}
-                  alt="Profile"
-                  className="w-16 h-16 rounded-full mb-2 object-cover"
-                />
-              ) : (
-                <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mb-2">
-                  <User size={26} className="text-gray-400" />
-                </div>
-              )}
+              <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mb-2">
+                <User size={26} className="text-gray-400" />
+              </div>
               <label className="cursor-pointer px-2 py-1 bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200 flex items-center gap-1 mb-2 text-sm">
                 <UploadCloud size={14} /> Upload
-                <input type="file" className="hidden" onChange={handleProfilePic} />
+                <input type="file" className="hidden" />
               </label>
               <input
                 type="password"
