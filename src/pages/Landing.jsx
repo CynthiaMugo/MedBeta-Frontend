@@ -1,72 +1,211 @@
-// src/pages/Landing.jsx
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Lock, Zap, FileText } from "lucide-react";
 
-function Landing() {
+export default function Landing() {
+  const [activeSection, setActiveSection] = useState("home");
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex flex-col">
       {/* Top Nav */}
-      <header className="flex justify-between items-center px-8 py-4 bg-white shadow-md">
+      <header className="flex justify-between items-center px-8 py-4 bg-white shadow-md sticky top-0 z-50">
         <div className="text-2xl font-bold text-gray-800">MedBeta</div>
         <nav className="flex gap-6 items-center">
-          <a href="#home" className="text-gray-700 hover:text-blue-600">
+          <button
+            onClick={() => setActiveSection("home")}
+            className={`text-gray-700 hover:text-blue-600 transition ${
+              activeSection === "home" ? "text-blue-600 font-semibold" : ""
+            }`}
+          >
             Home
-          </a>
-          <a href="#features" className="text-gray-700 hover:text-blue-600">
+          </button>
+          <button
+            onClick={() => setActiveSection("features")}
+            className={`text-gray-700 hover:text-blue-600 transition ${
+              activeSection === "features" ? "text-blue-600 font-semibold" : ""
+            }`}
+          >
             Features
-          </a>
-          <a href="#contact" className="text-gray-700 hover:text-blue-600">
+          </button>
+          <button
+            onClick={() => setActiveSection("contact")}
+            className={`text-gray-700 hover:text-blue-600 transition ${
+              activeSection === "contact" ? "text-blue-600 font-semibold" : ""
+            }`}
+          >
             Contact
-          </a>
-          {/* Removed Login and Sign Up */}
+          </button>
         </nav>
       </header>
 
-      {/* Hero Section */}
-      <section
-        id="home"
-        className="flex flex-col md:flex-row items-center justify-between px-8 md:px-24 py-24 gap-12 relative"
-      >
-        {/* Background accent */}
-        <div className="absolute -z-10 top-0 left-0 w-full h-full bg-blue-100/20 rounded-3xl"></div>
-
-        {/* Left Text */}
+      {/* Main Section */}
+      <section className="flex flex-col md:flex-row items-center justify-between px-8 md:px-24 py-16 gap-12 relative flex-grow">
+        {/* Left Side Content */}
         <motion.div
-          initial={{ opacity: 0, x: -50 }}
+          key={activeSection}
+          initial={{ opacity: 0, x: -40 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 1 }}
+          transition={{ duration: 0.6 }}
           className="max-w-xl text-center md:text-left z-10"
         >
-          <h1 className="text-5xl md:text-6xl font-extrabold text-gray-800 mb-6 leading-tight">
-            Smart, Secure & Real-Time Health Care Records
-          </h1>
-          <p className="text-gray-700 mb-8 text-lg md:text-xl">
-            Access patient medical history securely from any healthcare facility,
-            ensuring better continuity of care.
-          </p>
-          <Link to="/auth">
-            <motion.button
-              whileHover={{ scale: 1.08 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-10 py-5 bg-blue-600 text-white text-lg font-semibold rounded-xl shadow-2xl hover:bg-blue-700 transition"
-            >
-              Get Started
-            </motion.button>
-          </Link>
+          {activeSection === "home" && (
+            <>
+              <h1 className="text-5xl md:text-6xl font-extrabold text-gray-800 mb-6 leading-tight">
+                Smart, Secure & Real-Time Health Care Records
+              </h1>
+              <p className="text-gray-700 mb-8 text-lg md:text-xl">
+                MedBeta is a next-generation platform enabling hospitals and doctors
+                to securely access, update, and share medical data instantly — ensuring
+                seamless patient care anywhere, anytime.
+              </p>
+
+              <Link to="/signup">
+                <motion.button
+                  whileHover={{ scale: 1.08 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-10 py-5 bg-blue-600 text-white text-lg font-semibold rounded-xl shadow-2xl hover:bg-blue-700 transition"
+                >
+                  Get Started
+                </motion.button>
+              </Link>
+            </>
+          )}
+
+          {activeSection === "features" && (
+            <>
+              <h2 className="text-4xl font-bold text-gray-800 mb-4">Our Key Features</h2>
+              <p className="text-gray-700 text-lg mb-8 leading-relaxed">
+                MedBeta empowers healthcare facilities with cutting-edge digital
+                solutions that ensure efficiency, privacy, and seamless interoperability
+                between systems.
+              </p>
+
+              <div className="grid sm:grid-cols-1 md:grid-cols-2 gap-6 text-left">
+                <div className="flex items-start gap-3">
+                  <Lock size={28} className="text-blue-500 mt-1" />
+                  <div>
+                    <h4 className="font-semibold text-gray-800">
+                      Secure Cloud Storage
+                    </h4>
+                    <p className="text-gray-600 text-sm">
+                      End-to-end encryption protects patient data — accessible only
+                      by authorized professionals.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <Zap size={28} className="text-blue-500 mt-1" />
+                  <div>
+                    <h4 className="font-semibold text-gray-800">
+                      Real-Time Updates
+                    </h4>
+                    <p className="text-gray-600 text-sm">
+                      Get instant notifications of new diagnoses, prescriptions,
+                      and medical events as they happen.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <FileText size={28} className="text-blue-500 mt-1" />
+                  <div>
+                    <h4 className="font-semibold text-gray-800">
+                      Cross-Hospital Access
+                    </h4>
+                    <p className="text-gray-600 text-sm">
+                      View and manage patient records securely across multiple
+                      hospitals and departments.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <FileText size={28} className="text-blue-500 mt-1" />
+                  <div>
+                    <h4 className="font-semibold text-gray-800">
+                      AI-Powered Analytics
+                    </h4>
+                    <p className="text-gray-600 text-sm">
+                      Gain insights on patient trends and hospital performance
+                      through real-time analytics dashboards.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {activeSection === "contact" && (
+            <>
+              <h2 className="text-4xl font-bold text-gray-800 mb-4">
+                Get in Touch With Us
+              </h2>
+              <p className="text-gray-700 text-lg mb-8 leading-relaxed">
+                Have a question or need help? Reach out to our support team. We’re
+                here to assist you in transforming healthcare through technology.
+              </p>
+
+              <form className="space-y-4">
+                <div className="flex flex-col">
+                  <label className="text-gray-700 font-medium mb-1">Name</label>
+                  <input
+                    type="text"
+                    placeholder="Enter your full name"
+                    className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  />
+                </div>
+
+                <div className="flex flex-col">
+                  <label className="text-gray-700 font-medium mb-1">Email</label>
+                  <input
+                    type="email"
+                    placeholder="Enter your email"
+                    className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  />
+                </div>
+
+                <div className="flex flex-col">
+                  <label className="text-gray-700 font-medium mb-1">Phone</label>
+                  <div className="flex">
+                    <select className="border border-gray-300 rounded-l-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white">
+                      <option value="+1">🇺🇸 +1</option>
+                      <option value="+44">🇬🇧 +44</option>
+                      <option value="+254">🇰🇪 +254</option>
+                      <option value="+91">🇮🇳 +91</option>
+                      <option value="+61">🇦🇺 +61</option>
+                    </select>
+                    <input
+                      type="tel"
+                      placeholder="Your phone number"
+                      className="border-t border-b border-r border-gray-300 rounded-r-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 flex-grow"
+                    />
+                  </div>
+                </div>
+
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-lg hover:bg-blue-700 transition"
+                >
+                  Send Message
+                </motion.button>
+              </form>
+            </>
+          )}
         </motion.div>
 
-        {/* Right Illustration */}
+        {/* Right Illustration (Remains Visible) */}
         <motion.div
-          initial={{ opacity: 0, x: 50 }}
+          initial={{ opacity: 0, x: 40 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 1 }}
+          transition={{ duration: 0.8 }}
           className="max-w-md relative z-10"
         >
           <motion.img
             src="/doctor-illustration.png"
-            alt="2D Cartoon Doctor Illustration"
+            alt="Doctor Illustration"
             className="w-full drop-shadow-2xl rounded-2xl"
             whileHover={{ scale: 1.03, y: -5 }}
             transition={{ type: "spring", stiffness: 200 }}
@@ -75,61 +214,16 @@ function Landing() {
         </motion.div>
       </section>
 
-      {/* Feature Highlights */}
-      <section
-        id="features"
-        className="flex flex-col md:flex-row justify-center gap-8 px-8 md:px-24 py-12"
-      >
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="flex flex-col items-center bg-white p-6 rounded-xl shadow-md text-center w-64 hover:shadow-lg transition"
-        >
-          <Lock size={32} className="text-blue-400 mb-4" />
-          <h3 className="font-semibold text-gray-800 mb-2">
-            Secure Cloud Storage
-          </h3>
-          <p className="text-gray-600 text-sm">
-            End-to-end encryption for patient data.
-          </p>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="flex flex-col items-center bg-white p-6 rounded-xl shadow-md text-center w-64 hover:shadow-lg transition"
-        >
-          <Zap size={32} className="text-blue-400 mb-4" />
-          <h3 className="font-semibold text-gray-800 mb-2">Real-Time Updates</h3>
-          <p className="text-gray-600 text-sm">
-            Instantly sync new diagnosis and treatments.
-          </p>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
-          className="flex flex-col items-center bg-white p-6 rounded-xl shadow-md text-center w-64 hover:shadow-lg transition"
-        >
-          <FileText size={32} className="text-blue-400 mb-4" />
-          <h3 className="font-semibold text-gray-800 mb-2">
-            Cross-Hospital Access
-          </h3>
-          <p className="text-gray-600 text-sm">
-            View records from any connected facility.
-          </p>
-        </motion.div>
-      </section>
-
       {/* Footer */}
-      <footer className="text-center py-6 text-gray-500 text-sm border-t">
-        &copy; 2025 MedBeta. All rights reserved.
+      <footer className="bg-blue-600 text-white text-center py-6 mt-auto">
+        <p className="text-lg font-medium">Join the Future of Healthcare Data</p>
+        <p className="text-sm mt-2 opacity-90">
+          &copy; 2025 MedBeta. Empowering digital health transformation worldwide.
+        </p>
+        <p className="text-sm mt-1">
+           Email: support@medbeta.io |  www.medbeta.io
+        </p>
       </footer>
     </div>
   );
 }
-
-export default Landing;

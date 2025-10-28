@@ -1,34 +1,45 @@
-// src/routes/PrivateRoute.jsx
+// src/components/PrivateRoute.jsx
 import React from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 
 export default function PrivateRoute({ role, children }) {
-  const user = JSON.parse(localStorage.getItem("user"));
+  const location = useLocation();
 
-  // If no user found
+  // Try to load the user safely from localStorage
+  let user = null;
+  try {
+    user = JSON.parse(localStorage.getItem("user"));
+  } catch (error) {
+    console.error("Error parsing user data:", error);
+  }
+
+  // No user? Redirect to login page
   if (!user) {
-    const authPages = {
-      patient: "/auth",
-      doctor: "/doctor-auth",
-      pharmacist: "/pharmacist-auth",
-      lab: "/lab-auth",
-      admin: "/admin-auth",
-      hospital: "/hospital-auth",
-    };
-    return <Navigate to={authPages[role] || "/auth"} replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // If user role doesn't match the required role
+  // Role mismatch → redirect to correct dashboard
   if (user.role !== role) {
-    console.warn("User role mismatch:", user.role, "!==", role);
-    return <Navigate to="/" replace />;
+    console.warn(`Access denied. User role: ${user.role}, expected: ${role}`);
+
+    const roleRedirects = {
+      patient: "/patient-dashboard",
+      doctor: "/doctor-dashboard",
+      lab: "/lab-dashboard",
+      pharmacist: "/pharmacist-dashboard",
+      admin: "/admin-dashboard",
+      hospital: "/hospital-dashboard",
+    };
+
+    return <Navigate to={roleRedirects[user.role] || "/login"} replace />;
   }
 
-  // If user is not verified (optional)
+  // Optional: Check if verified
   if (user.isVerified === false) {
-    return <Navigate to={`/${role}-auth`} replace />;
+    alert("Your account is not verified yet.");
+    return <Navigate to="/login" replace />;
   }
 
-  // Otherwise, access granted
+  // ✅ All good — allow access
   return children;
 }

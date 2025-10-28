@@ -1,16 +1,11 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-
-// ===== Public Pages =====
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Landing from "./pages/Landing";
-import PatientAuth from "./pages/PatientAuth";
-import DoctorAuth from "./pages/DoctorAuth";
-import PharmacistAuth from "./pages/PharmacistAuth";
-import LabAuth from "./pages/LabAuth";
-import AdminAuth from "./pages/AdminAuth";
-import HospitalAuth from "./pages/HospitalAuth";
+import Signup from "./pages/Signup";
+import Login from "./pages/Login";
+import PrivateRoute from "./components/PrivateRoute";
 
-// ===== Dashboards =====
+// Import dashboards
 import PatientDashboard from "./pages/PatientDashboard";
 import DoctorDashboard from "./pages/DoctorsDashboard";
 import LabDashboard from "./pages/LabDashboard";
@@ -18,27 +13,16 @@ import PharmacistDashboard from "./pages/PharmacistDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import HospitalDashboard from "./pages/HospitalDashboard";
 
-// ===== Private Route =====
-import PrivateRoute from "./components/PrivateRoute";
-
-// ====== Auth Forms ======
-import PatientAuthForm from "./pages/PatientAuth"; // <-- your fixed form
-
-function App() {
+export default function App() {
   return (
     <Router>
       <Routes>
-        {/* ===== Public Pages ===== */}
+        {/* Public Routes */}
         <Route path="/" element={<Landing />} />
-        <Route path="/auth" element={<PatientAuth />} />
-        <Route path="/patient-auth" element={<PatientAuthForm />} /> {/* ✅ Optional: direct access to the form */}
-        <Route path="/doctor-auth" element={<DoctorAuth />} />
-        <Route path="/pharmacist-auth" element={<PharmacistAuth />} />
-        <Route path="/lab-auth" element={<LabAuth />} />
-        <Route path="/admin-auth" element={<AdminAuth />} />
-        <Route path="/hospital-auth" element={<HospitalAuth />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/login" element={<Login />} />
 
-        {/* ===== Protected Dashboards ===== */}
+        {/* Protected Routes */}
         <Route
           path="/patient-dashboard"
           element={
@@ -88,11 +72,9 @@ function App() {
           }
         />
 
-        {/* ===== Catch-All ===== */}
-        <Route path="*" element={<Landing />} />
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );
 }
-
-export default App;
