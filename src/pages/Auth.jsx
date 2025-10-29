@@ -42,6 +42,7 @@ export default function Auth() {
       else if (role === "technician") navigate("/technician/dashboard");
       else if (role === "patient") navigate("/patient/dashboard");
       else if (role === "hospital") navigate("/hospital/dashboard");
+      else if (role === "hospital_admin") navigate ("/hospital/dashboard");
       else navigate("/");
     } else {
       alert("Account created! Please log in.");
