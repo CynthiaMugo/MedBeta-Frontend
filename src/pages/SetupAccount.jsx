@@ -35,15 +35,15 @@ export default function SetupPasswordPage() {
     const r = role?.toLowerCase();
     switch (r) {
       case "doctor":
-        return "/doctor-dashboard";
-      case "hospital":
-        return "/hospital-dashboard";
+        return "/doctor/dashboard";
+      case "hospital" || "hospital_admin":
+        return "/hospital/dashboard";
       case "pharmacy":
       case "pharmacist":
-        return "/pharmacy-dashboard";
+        return "/pharmacy/dashboard";
       case "labtech":
       case "technician":
-        return "/lab-dashboard";
+        return "/technician/dashboard";
       default:
         return "/auth";
     }
