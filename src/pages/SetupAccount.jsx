@@ -56,7 +56,7 @@ export default function SetupPasswordPage() {
     if (password !== confirmPassword) return setError("Passwords do not match");
 
     const payload = { password };
-    if (inviteInfo?.role === "hospital") {
+    if (inviteInfo?.role === "hospital" || inviteInfo?.role === "hospital_admin") {
       if (!hospitalName.trim()) return setError("Hospital name is required");
       payload.hospital_name = hospitalName;
       payload.license_number = licenseNumber;
