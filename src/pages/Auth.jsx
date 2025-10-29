@@ -29,10 +29,14 @@ export default function Auth() {
     const endpoint = isLogin ? "/auth/login" : "/auth/register";
     const response = await axios.post(`${API_URL}${endpoint}`, formData);
 
+    // Your backend returns "token" for registration
     const token = response.data.token || response.data.access_token;
 
-    if (isLogin && token) {
+    if (token) {
+      // Save token
       localStorage.setItem("token", token);
+
+      // Decode role
       const decoded = jwtDecode(token);
       const role = decoded?.role || decoded?.sub?.role;
 
@@ -43,15 +47,13 @@ export default function Auth() {
       else if (role === "patient") navigate("/patient/dashboard");
       else if (role === "hospital") navigate("/hospital/dashboard");
       else navigate("/");
-    } else {
-      alert("Account created! Please log in.");
-      setIsLogin(true);
     }
   } catch (error) {
     console.error("Auth error:", error);
     alert(error.response?.data?.error || "Something went wrong!");
   }
 };
+
 
 const handleForgotPassword = async () => {
   if (!formData.email) return alert("Please enter your email first.");
@@ -77,7 +79,7 @@ const handleForgotPassword = async () => {
         >
           {/* Title */}
           <h2 className="text-3xl font-bold text-center text-blue-700 mb-6">
-            {isLogin ? "Welcome Back" : "Create Your Account 🩺"}
+            {isLogin ? "Welcome Back" : "Create Your Account"}
           </h2>
 
           {/* Toggle Login/Sign Up */}
