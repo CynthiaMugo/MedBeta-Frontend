@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { FileUp, PlusCircle, FileText, X } from "lucide-react";
+import { API_URL } from "../config";
+
 
 // Simple UI Components
 const Button = ({ children, className = "", ...props }) => (
@@ -87,30 +89,43 @@ export default function HospitalDashboard() {
     }
   }, []);
 
+
+// Fetch staff (uses full API_URL)
   const fetchStaff = async (id) => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get(`/hospitals/${id}/staff`, {
+      const res = await axios.get(`${API_URL}/hospitals/${id}/staff`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setStaff(res.data);
     } catch (err) {
+      console.error("Fetch staff error:", err);
       toast.error("Failed to load staff");
     }
   };
 
-  // Add staff manually
+  // Add staff manually (fixed)
   const handleAddStaff = async () => {
     if (!newStaff.name || !newStaff.email || !newStaff.role) {
-      toast.error("All fields required");
+      toast.error("All fields are required");
       return;
     }
 
     try {
       const token = localStorage.getItem("token");
+      const payload = {
+        staff: [
+          {
+            name: newStaff.name.trim(),
+            email: newStaff.email.trim(),
+            role: newStaff.role.trim(),
+          },
+        ],
+      };
+
       const res = await axios.post(
-        `/hospitals/${hospitalId}/upload-staff`,
-        { staff: [newStaff] },
+        `${API_URL}/hospitals/${hospitalId}/upload-staff`,
+        payload,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -118,16 +133,34 @@ export default function HospitalDashboard() {
           },
         }
       );
-      toast.success(res.data.message);
+
+      const message =
+        res.data.message ||
+        `Invited ${res.data.invites_sent?.length || 0} staff successfully`;
+
+      toast.success(message);
+
+      if (res.data.skipped?.length) {
+        console.warn("Some invites were skipped:", res.data.skipped);
+        toast(
+          `${res.data.skipped.length} invite(s) skipped. Check console for details.`
+        );
+      }
+
       setModalOpen(false);
       setNewStaff({ name: "", email: "", role: "" });
       fetchStaff(hospitalId);
-    } catch (err) {
-      toast.error("Failed to invite staff");
+    } catch (error) {
+      console.error("Error sending invite:", error);
+      const errMsg =
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        "Failed to invite staff";
+      toast.error(errMsg);
     }
   };
 
-  // CSV upload
+  // CSV upload (fixed to use API_URL)
   const handleFileUpload = async () => {
     if (!file) return toast.error("Select a file first");
     try {
@@ -135,28 +168,35 @@ export default function HospitalDashboard() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await axios.post(`/hospitals/${hospitalId}/upload-staff`, formData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      toast.success(res.data.message);
+      const res = await axios.post(
+        `${API_URL}/hospitals/${hospitalId}/upload-staff`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      toast.success(res.data.message || "File uploaded successfully");
       setFile(null);
       fetchStaff(hospitalId);
     } catch (err) {
+      console.error("Upload error:", err);
       toast.error("Failed to upload staff file");
     }
   };
 
-  // Agreement
+  // Agreement (fixed to use API_URL)
   const handleAgreement = async () => {
     if (!hospitalId) return toast.error("Hospital ID not found");
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `/hospitals/${hospitalId}/agreement`,
+        `${API_URL}/hospitals/${hospitalId}/agreement`,
         {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       setAgreementSigned(true);
       toast.success("Data-Sharing Agreement signed successfully");
