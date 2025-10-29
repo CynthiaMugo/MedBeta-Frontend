@@ -9,7 +9,7 @@ import SetupPasswordPage from './pages/SetupAccount';
 
 import SuperadminDashboard from "./pages/SuperadminDashboard";
 
-import HospitalDashboard from './pages/HospitalDashboard
+import HospitalDashboard from './pages/HospitalDashboard';
 
 export default function App() {
   return (
