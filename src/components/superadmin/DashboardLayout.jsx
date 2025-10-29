@@ -104,9 +104,9 @@ export default function DashboardLayout({ children }) {
       <main className="flex-1 ml-64 p-8 overflow-y-auto">
         <header className="flex justify-between items-center mb-8">
           <h2 className="text-2xl font-semibold text-blue-800">Dashboard</h2>
-          <button className="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-lg transition">
+          {/* <button className="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-lg transition">
             Quick Action
-          </button>
+          </button> */}
           <AdminHeader />
         </header>
 

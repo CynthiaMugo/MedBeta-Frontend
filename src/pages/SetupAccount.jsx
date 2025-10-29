@@ -10,14 +10,22 @@ export default function SetupPasswordPage() {
   const [inviteInfo, setInviteInfo] = useState(null);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [hospitalName, setHospitalName] = useState("");
+
+  // Doctor
   const [licenseNumber, setLicenseNumber] = useState("");
+  const [specialization, setSpecialization] = useState("");
+
+  // Pharmacy
+  const [pharmacyName, setPharmacyName] = useState("");
   const [location, setLocation] = useState("");
+
+  // Hospital
+  const [hospitalName, setHospitalName] = useState("");
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  // Fetch invite details using the token
   useEffect(() => {
     const fetchInvite = async () => {
       try {
@@ -30,13 +38,12 @@ export default function SetupPasswordPage() {
     fetchInvite();
   }, [token]);
 
-  // Redirect paths by role
   const routeByRole = (role) => {
-    const r = role?.toLowerCase();
-    switch (r) {
+    switch (role?.toLowerCase()) {
       case "doctor":
         return "/doctor/dashboard";
-      case "hospital" || "hospital_admin":
+      case "hospital":
+      case "hospital_admin":
         return "/hospital/dashboard";
       case "pharmacy":
       case "pharmacist":
@@ -56,11 +63,31 @@ export default function SetupPasswordPage() {
     if (password !== confirmPassword) return setError("Passwords do not match");
 
     const payload = { password };
-    if (inviteInfo?.role === "hospital" || inviteInfo?.role === "hospital_admin") {
-      if (!hospitalName.trim()) return setError("Hospital name is required");
-      payload.hospital_name = hospitalName;
-      payload.license_number = licenseNumber;
-      payload.location = location;
+
+    switch (inviteInfo.role.toLowerCase()) {
+      case "doctor":
+        if (!licenseNumber) return setError("License Number is required");
+        payload.license_number = licenseNumber;
+        payload.specialization = specialization;
+        break;
+
+      case "pharmacy":
+      case "pharmacist":
+        if (!pharmacyName) return setError("Pharmacy name is required");
+        payload.name = pharmacyName;
+        payload.location = location;
+        payload.license_number = licenseNumber;
+        break;
+
+      case "hospital":
+      case "hospital_admin":
+        if (!hospitalName.trim()) return setError("Hospital name is required");
+        payload.hospital_name = hospitalName;
+        payload.license_number = licenseNumber;
+        payload.location = location;
+        break;
+
+      // Technicians have no extra fields
     }
 
     try {
@@ -97,7 +124,60 @@ export default function SetupPasswordPage() {
           <p className="text-green-600 text-center font-semibold">Account activated! Redirecting…</p>
         ) : (
           <form onSubmit={handleSubmit}>
-            {inviteInfo?.role === "hospital" && (
+            {/* Doctor Fields */}
+            {inviteInfo?.role?.toLowerCase() === "doctor" && (
+              <>
+                <label className="block font-semibold mb-1">License Number *</label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border rounded mb-4"
+                  value={licenseNumber}
+                  onChange={(e) => setLicenseNumber(e.target.value)}
+                  required
+                />
+
+                <label className="block font-semibold mb-1">Specialization</label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border rounded mb-4"
+                  value={specialization}
+                  onChange={(e) => setSpecialization(e.target.value)}
+                />
+              </>
+            )}
+
+            {/* Pharmacy Fields */}
+            {["pharmacy", "pharmacist"].includes(inviteInfo?.role?.toLowerCase()) && (
+              <>
+                <label className="block font-semibold mb-1">Pharmacy Name *</label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border rounded mb-4"
+                  value={pharmacyName}
+                  onChange={(e) => setPharmacyName(e.target.value)}
+                  required
+                />
+
+                <label className="block font-semibold mb-1">Location</label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border rounded mb-4"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                />
+
+                <label className="block font-semibold mb-1">License Number</label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border rounded mb-4"
+                  value={licenseNumber}
+                  onChange={(e) => setLicenseNumber(e.target.value)}
+                />
+              </>
+            )}
+
+            {/* Hospital Fields */}
+            {["hospital", "hospital_admin"].includes(inviteInfo?.role?.toLowerCase()) && (
               <>
                 <label className="block font-semibold mb-1">Hospital Name *</label>
                 <input
@@ -126,6 +206,7 @@ export default function SetupPasswordPage() {
               </>
             )}
 
+            {/* Password Fields */}
             <label className="block font-semibold mb-1">New Password</label>
             <input
               type="password"
@@ -148,7 +229,7 @@ export default function SetupPasswordPage() {
 
             <button
               type="submit"
-              className="w-full py-2 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:opacity-50"
+              className="w-full py-2 rounded bg-green-600 text-white font-semibold hover:bg-green-700 disabled:opacity-50"
               disabled={loading}
             >
               {loading ? "Saving…" : "Activate Account"}
