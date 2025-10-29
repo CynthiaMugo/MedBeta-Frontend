@@ -6,7 +6,10 @@ import Auth from "./pages/Auth";
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from "./pages/ResetPassword";
 import SetupPasswordPage from './pages/SetupAccount';
+
 import SuperadminDashboard from "./pages/SuperadminDashboard";
+
+import HospitalDashboard from './pages/HospitalDashboard
 
 export default function App() {
   return (
@@ -23,7 +26,7 @@ export default function App() {
         <Route path="/technician/dashboard" element={<div>Technician Dashboard</div>} />
         <Route path = "/pharmacy/dashboard" element={<div>Pharmacist Dashboard</div>}/>
         <Route path="/patient/dashboard" element={<div>Patient Dashboard</div>} />
-        <Route path="/hospital/dashboard" element={<div>Hospital Dashboard</div>} />
+        <Route path="/hospital/dashboard" element={<HospitalDashboard/>} />
       </Routes>
     </Router>
   );
