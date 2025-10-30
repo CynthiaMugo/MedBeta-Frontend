@@ -194,21 +194,38 @@ export default function DoctorDashboard() {
               <table className="min-w-full text-sm border">
                 <thead className="bg-blue-100 text-blue-900">
                   <tr>
+                    <th className="p-2">Doctor</th>
                     <th className="p-2">Diagnosis</th>
                     <th className="p-2">Treatment</th>
                     <th className="p-2">Notes</th>
                     <th className="p-2">Actions</th>
                   </tr>
                 </thead>
+
                 <tbody>
-                  {records.map(r=>(
+                  {records.map(r => (
                     <tr key={r.id} className="border-t hover:bg-gray-50">
+                      <td className="p-2">
+                        {r.doctor ? r.doctor.name : "—"}
+                        {r.doctor?.specialization && (
+                          <span className="block text-xs text-gray-500 italic">
+                            {r.doctor.specialization}
+                          </span>
+                        )}
+                      </td>
                       <td className="p-2">{r.diagnosis}</td>
                       <td className="p-2">{r.treatment}</td>
                       <td className="p-2">{r.notes}</td>
                       <td className="p-2">
                         <button
-                          onClick={()=>{ setEditingRecord(r); setEditValues({ diagnosis:r.diagnosis, treatment:r.treatment, notes:r.notes }); }}
+                          onClick={() => {
+                            setEditingRecord(r);
+                            setEditValues({
+                              diagnosis: r.diagnosis,
+                              treatment: r.treatment,
+                              notes: r.notes
+                            });
+                          }}
                           className="px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"
                         >
                           Update
@@ -216,6 +233,7 @@ export default function DoctorDashboard() {
                       </td>
                     </tr>
                   ))}
+
                 </tbody>
               </table>
             </div>
