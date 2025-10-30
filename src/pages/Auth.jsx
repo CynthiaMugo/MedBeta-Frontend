@@ -69,34 +69,8 @@ export default function Auth() {
     } catch (error) {
       console.error("Auth error:", error);
       alert(error.response?.data?.error || "Something went wrong!");
-=======
-  e.preventDefault();
-  try {
-    const endpoint = isLogin ? "/auth/login" : "/auth/register";
-    const response = await axios.post(`${API_URL}${endpoint}`, formData);
+    }}
 
-    // Your backend returns "token" for registration
-    const token = response.data.token || response.data.access_token;
-
-    if (token) {
-      // Save token
-      localStorage.setItem("token", token);
-
-      // Decode role
-      const decoded = jwtDecode(token);
-      const role = decoded?.role || decoded?.sub?.role;
-
-      // Redirect based on role
-      if (role === "superadmin") navigate("/superadmin/dashboard");
-      else if (role === "doctor") navigate("/doctor/dashboard");
-      else if (role === "technician") navigate("/technician/dashboard");
-      else if (role === "patient") navigate("/patient/dashboard");
-      else if (role === "hospital") navigate("/hospital/dashboard");
-      else if (role === "pharmacist") navigate("/pharmacy/dashboard");
-      else if (role === "hospital_admin") navigate ("/hospital/dashboard");
-      else navigate("/");
-    }
-  };
 
   const handleForgotPassword = async () => {
     if (!formData.email) return alert("Please enter your email first.");
