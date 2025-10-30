@@ -8,6 +8,8 @@ import SuperadminDashboard from "./pages/SuperadminDashboard";
 import DoctorDashboard from "./pages/DocDashboard";
 import HospitalDashboard from "./pages/HospitalDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
+// import PatientDashboard from "./pages/PatientDashboard";
+import PatientDashboard from "./pages/DashboardPatient";
 
 export default function App() {
   return (
@@ -65,7 +67,7 @@ export default function App() {
           path="/patient/dashboard"
           element={
             <ProtectedRoute allowedRoles={["patient"]}>
-              <div>Patient Dashboard</div>
+              <PatientDashboard />
             </ProtectedRoute>
           }
         />
