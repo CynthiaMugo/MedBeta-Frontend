@@ -6,7 +6,6 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-
 import { API_URL } from "../config";
 
 export default function Auth() {
@@ -19,11 +18,58 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
+  const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
 
   const handleSubmit = async (e) => {
+
+    e.preventDefault();
+    try {
+      const endpoint = isLogin ? "/auth/login" : "/auth/register";
+      const response = await axios.post(`${API_URL}${endpoint}`, formData);
+
+      //token and role now come from backend
+      const token = response.data.token;
+      const role = response.data.role;
+      const user_id = response.data.user_id;
+      const hospital_id = response.data.hospital_id || null;
+
+      if (token) {
+        // Save token and user info
+        localStorage.setItem("token", token);
+        const userData = { token, role, user_id, hospital_id };
+        localStorage.setItem("user", JSON.stringify(userData));
+
+        // Redirect based on role
+        switch (role) {
+          case "superadmin":
+            navigate("/superadmin/dashboard");
+            break;
+          case "hospital":
+          case "hospital_admin":
+            navigate("/hospital/dashboard");
+            break;
+          case "doctor":
+            navigate("/doctor/dashboard");
+            break;
+          case "technician":
+          case "labtech":
+            navigate("/technician/dashboard");
+            break;
+          case "pharmacist":
+            navigate("/pharmacist/dashboard");
+            break;
+          case "patient":
+            navigate("/patient/dashboard");
+            break;
+          default:
+            navigate("/");
+        }
+      }
+    } catch (error) {
+      console.error("Auth error:", error);
+      alert(error.response?.data?.error || "Something went wrong!");
+=======
   e.preventDefault();
   try {
     const endpoint = isLogin ? "/auth/login" : "/auth/register";
@@ -50,24 +96,20 @@ export default function Auth() {
       else if (role === "hospital_admin") navigate ("/hospital/dashboard");
       else navigate("/");
     }
-  } catch (error) {
-    console.error("Auth error:", error);
-    alert(error.response?.data?.error || "Something went wrong!");
-  }
-};
+  };
 
-
-const handleForgotPassword = async () => {
-  if (!formData.email) return alert("Please enter your email first.");
-  try {
-    await axios.put(`${API_URL}/auth/reset-password`, { email: formData.email });
-    alert("Password reset link sent! Check your email.");
-  } catch (err) {
-    console.error(err);
-    alert(err.response?.data?.error || "Error sending reset link");
-  }
-};
-
+  const handleForgotPassword = async () => {
+    if (!formData.email) return alert("Please enter your email first.");
+    try {
+      await axios.put(`${API_URL}/auth/reset-password`, {
+        email: formData.email,
+      });
+      alert("Password reset link sent! Check your email.");
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.error || "Error sending reset link");
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-50 to-white">
@@ -97,7 +139,9 @@ const handleForgotPassword = async () => {
             <button
               onClick={() => setIsLogin(false)}
               className={`px-4 py-2 rounded-r-md ${
-                !isLogin ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700"
+                !isLogin
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700"
               }`}
             >
               Sign Up
@@ -150,21 +194,20 @@ const handleForgotPassword = async () => {
               />
               <span
                 className="absolute inset-y-0 right-3 flex items-center cursor-pointer text-gray-500"
-                onClick={() => setShowPassword(prev => !prev)}
+                onClick={() => setShowPassword((prev) => !prev)}
               >
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </span>
             </div>
 
-                {isLogin && (
-                  <p
-                    className="text-right text-sm text-blue-600 hover:underline cursor-pointer"
-                    onClick={() => navigate("/forgot-password")}
-                  >
-                    Forgot Password?
-                  </p>
-                )}
-
+            {isLogin && (
+              <p
+                className="text-right text-sm text-blue-600 hover:underline cursor-pointer"
+                onClick={() => handleForgotPassword()}
+              >
+                Forgot Password?
+              </p>
+            )}
 
             <motion.button
               whileHover={{ scale: 1.05 }}
