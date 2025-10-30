@@ -4,8 +4,7 @@ import toast from "react-hot-toast";
 import { FileUp, PlusCircle, FileText, X } from "lucide-react";
 import { API_URL } from "../config";
 
-
-// Simple UI Components
+//UI Components
 const Button = ({ children, className = "", ...props }) => (
   <button
     {...props}
@@ -53,7 +52,6 @@ const TableCell = ({ children }) => (
   <td className="py-2 px-4 text-sm">{children}</td>
 );
 
-// Simple Modal
 const Dialog = ({ open, onClose, children }) => {
   if (!open) return null;
   return (
@@ -71,7 +69,7 @@ const Dialog = ({ open, onClose, children }) => {
   );
 };
 
-// ===== Hospital Dashboard =====
+//Hospital Dashboard
 export default function HospitalDashboard() {
   const [staff, setStaff] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -89,8 +87,7 @@ export default function HospitalDashboard() {
     }
   }, []);
 
-
-// Fetch staff (uses full API_URL)
+  //Fetch hospital staff
   const fetchStaff = async (id) => {
     try {
       const token = localStorage.getItem("token");
@@ -104,7 +101,7 @@ export default function HospitalDashboard() {
     }
   };
 
-  // Add staff manually (fixed)
+  //Add single staff (via /invite-staff)
   const handleAddStaff = async () => {
     if (!newStaff.name || !newStaff.email || !newStaff.role) {
       toast.error("All fields are required");
@@ -114,44 +111,24 @@ export default function HospitalDashboard() {
     try {
       const token = localStorage.getItem("token");
       const payload = {
-        staff: [
-          {
-            name: newStaff.name.trim(),
-            email: newStaff.email.trim(),
-            role: newStaff.role.trim(),
-          },
-        ],
+        name: newStaff.name.trim(),
+        email: newStaff.email.trim(),
+        role: newStaff.role.trim(),
       };
 
-      const res = await axios.post(
-        `${API_URL}/hospitals/${hospitalId}/upload-staff`,
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const res = await axios.post(`${API_URL}/hospitals/invite-staff`, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
-      const message =
-        res.data.message ||
-        `Invited ${res.data.invites_sent?.length || 0} staff successfully`;
-
-      toast.success(message);
-
-      if (res.data.skipped?.length) {
-        console.warn("Some invites were skipped:", res.data.skipped);
-        toast(
-          `${res.data.skipped.length} invite(s) skipped. Check console for details.`
-        );
-      }
-
+      toast.success(res.data.message || "Invite sent successfully");
       setModalOpen(false);
       setNewStaff({ name: "", email: "", role: "" });
       fetchStaff(hospitalId);
     } catch (error) {
-      console.error("Error sending invite:", error);
+      console.error("Error inviting staff:", error);
       const errMsg =
         error.response?.data?.error ||
         error.response?.data?.message ||
@@ -160,7 +137,7 @@ export default function HospitalDashboard() {
     }
   };
 
-  // CSV upload (fixed to use API_URL)
+  //Upload CSV (optional, same route until bulk invite is ready)
   const handleFileUpload = async () => {
     if (!file) return toast.error("Select a file first");
     try {
@@ -188,7 +165,7 @@ export default function HospitalDashboard() {
     }
   };
 
-  // Agreement (fixed to use API_URL)
+  // Sign Data-Sharing Agreement 
   const handleAgreement = async () => {
     if (!hospitalId) return toast.error("Hospital ID not found");
     try {
@@ -206,11 +183,14 @@ export default function HospitalDashboard() {
     }
   };
 
+  // Render
   return (
     <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
-      <h1 className="text-3xl font-semibold text-gray-800"> Hospital Dashboard</h1>
+      <h1 className="text-3xl font-semibold text-gray-800">
+        Hospital Dashboard
+      </h1>
 
-      {/* Staff Management Section */}
+      {/* Staff Management */}
       <Card className="shadow-md">
         <CardContent>
           <div className="flex justify-between items-center mb-6">
@@ -266,7 +246,7 @@ export default function HospitalDashboard() {
             </TableBody>
           </Table>
 
-          {/* File Upload */}
+          {/* CSV Upload */}
           <div className="mt-6 flex items-center gap-3">
             <Input
               type="file"
@@ -290,11 +270,13 @@ export default function HospitalDashboard() {
             <FileText className="w-5 h-5 text-blue-600" /> Data-Sharing Agreement
           </h2>
           <p className="text-gray-600 mb-4">
-            Hospitals must agree to securely share patient data only for treatment,
-            diagnosis, and authorized research purposes.
+            Hospitals must agree to securely share patient data only for
+            treatment, diagnosis, and authorized research purposes.
           </p>
           {agreementSigned ? (
-            <p className="text-green-600 font-semibold">✅ Agreement Signed</p>
+            <p className="text-green-600 font-semibold">
+              Agreement Signed
+            </p>
           ) : (
             <Button
               onClick={handleAgreement}
@@ -309,7 +291,7 @@ export default function HospitalDashboard() {
       {/* Add Staff Modal */}
       <Dialog open={modalOpen} onClose={() => setModalOpen(false)}>
         <h3 className="text-lg font-semibold mb-4">
-          Add{" "}
+          Invite{" "}
           {newStaff.role
             ? newStaff.role.charAt(0).toUpperCase() + newStaff.role.slice(1)
             : "Staff"}
@@ -330,7 +312,7 @@ export default function HospitalDashboard() {
             onClick={handleAddStaff}
             className="w-full bg-green-600 hover:bg-green-700 text-white"
           >
-            Send Invite
+            Send Invite Email
           </Button>
         </div>
       </Dialog>
