@@ -55,7 +55,7 @@ export default function App() {
           }
         />
         <Route
-          path="/pharmacy/dashboard"
+          path="/pharmacist/dashboard"
           element={
             <ProtectedRoute allowedRoles={["pharmacist"]}>
               <PharmacistDashboard />
